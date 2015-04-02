@@ -1,0 +1,27 @@
+<div class="calcolator">
+  <div class="header">
+    Oggi è {{getDate()}}
+    <i class="fa fa-2x fa-trash aslink" ng-click="clear()"></i>
+  </div>
+  <form class="form-horizontal">
+    <div class="form-group">
+      <label class="col-xs-6 control-label">Ore da fare</label>
+      <div class="col-xs-6">
+        <input class="form-control work-hour" type="text" ng-model="context.o" ng-change="recalc()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-xs-6 control-label">Entrata / Uscita</label>
+      <div class="col-xs-6">
+        <tempi-item ng-repeat="i in context.items" ng-model="i" ng-change="recalc()"></tempi-item>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-xs-6 control-label">Uscita prevista alle:</label>
+      <div class="col-xs-6">
+        <div class="form-control result">{{context.exit}}</div>
+      </div>
+    </div>
+  </form>
+  <kbd>beta</kbd>
+</div>
