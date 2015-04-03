@@ -3,7 +3,6 @@
   "author": "Leo",
   "version": "1.0.0",
   "dependencies": {
-    "bower":"1.4.1",
     "angular": ">=1.2.*",
     "json3": "~3.3.1",
     "es5-shim": "~3.0.1",
