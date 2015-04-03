@@ -4,7 +4,7 @@
 'use strict';
 
 angular.module('Quando')
-  .controller('TempiCtrl', ['$scope', function ($scope) {
+  .controller('TempiCtrl', ['$scope','$http','$interval', function ($scope,$http,$interval) {
     $scope.context = {
       o:'8',
       exit:'?',
@@ -15,14 +15,75 @@ angular.module('Quando')
       debug:{}
     };
 
+    $scope.milking = false;
+    function milkinaz() {
+      if ($scope.milking) return;
+      $scope.milking = true;
+      $http.post('/api/inaz', $scope.context.user)
+        .success(function(data) {
+          if (data && data.length){
+            var items = [];
+            var i = {};
+            data.forEach(function(r){
+              if (r['C4']=='E'){
+                if (i.E){
+                  items.push(i);
+                  i = {};
+                }
+                i.E = r['C2']+':'+r['C3'];
+              }
+              else if (r['C4']=='U'){
+                if (i.U){
+                  items.push(i);
+                  i = {};
+                }
+                i.U = r['C2']+':'+r['C3'];
+              }
+            });
+            if (i.E || i.U)
+              items.push(i);
+            $scope.context.items = items;
+            $scope.recalc();
+          }
+        })
+        .error(function(err){
+          alert('ERRORE: '+JSON.stringify(err));
+        })
+        .then(function() {
+          $scope.milking = false;
+        });
+    }
+
+    var automilk;
+    $scope.start = function() {
+      $scope.stop();
+      automilk = $interval(milkinaz, 30000);
+    };
+    $scope.stop = function() {
+      if (automilk) {
+        $interval.cancel(automilk);
+        automilk = null;
+      }
+    };
+    $scope.$on('$destroy', function() {
+      $scope.stop();
+    });
+    function checkAutoMilk() {
+      if ($scope.context.user.auto && !automilk)
+        $scope.start();
+      else if (!$scope.context.user.auto && automilk)
+        $scope.stop();
+    }
+
     function parse(v,min,max) {
-      var rv = parseInt(v);
+      var rv = parseInt(v) || 0;
       if (rv<min) rv=min;
       if (rv>max) rv=max;
       return rv;
     }
 
     function getMinutes(t) {
+      if (!t) return 0;
       var pattern = /\d+/g;
       var values = t.match(pattern);
       var mt = 0;
@@ -55,9 +116,10 @@ angular.module('Quando')
       return days[date.getDay()-1]+' '+date.getDate()+' '+months[date.getMonth()]+' '+date.getFullYear();
     };
 
-    $scope.recalc  = function(){
+    $scope.recalc = function(){
       var mP = 0;
-      var mT = parseInt($scope.context.o)*60;
+      var mT = parseInt($scope.context.o)*60 || 0;
+      var mPP = parseInt($scope.context.p)*60 || 0;
       var mL = 0;
       var lastok = false;
       var firstE = 0;
@@ -100,7 +162,7 @@ angular.module('Quando')
         $scope.context.items.push({E:'',U:''});
       if (!lunch)
         mP = 30;
-      var r = lastE+mT-mL+mP;
+      var r = lastE+mT-mL+mP-mPP;
 
       $scope.context.debug =  {
         lastE:lastE,
@@ -111,11 +173,14 @@ angular.module('Quando')
       };
 
       $scope.context.exit = r>0 ? getTime(r) : '?';
-    }
+    };
 
     $scope.clear = function() {
+      var u = ($scope.context) ? $scope.context.user : {};
       $scope.context = {
+        user: u,
         o:'8',
+        p:'0',
         exit:'?',
         items: [{
           E:'8:30',
@@ -126,4 +191,15 @@ angular.module('Quando')
     };
 
     $scope.clear();
+
+    $scope.toggleAutoInaz = function() {
+      $scope.context.user.auto = !$scope.context.user.auto;
+      checkAutoMilk();
+    };
+
+    $scope.inaz = function() {
+      if (!$scope.context.user.name || !$scope.context.user.password || $scope.context.user.auto)
+        return;
+      milkinaz();
+    };
   }]);

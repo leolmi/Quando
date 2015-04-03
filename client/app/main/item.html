@@ -1,4 +1,4 @@
 <div class="lunch" ng-show="item.lunch"><i class="fa fa-coffee fa-2x fa-fw lunch-fa" ></i>{{item.L}}</div>
 <input class="form-control" type="text" ng-model="item.E" ng-change="changed()"> /
 <input class="form-control" type="text" ng-model="item.U" ng-change="changed()">
-{{item.minutes}}
+{{item.minutes ? item.minutes : ''}}

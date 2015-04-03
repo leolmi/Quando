@@ -27,7 +27,8 @@
 }
 
 .work-hour {
-  background-color: #ccc;
+  background-color: #aaa;
+  border-color: #333;
 }
 .lunch {
   display: block;
@@ -53,4 +54,20 @@ tempi-item {
   padding: 0;
   font-size: 26px;
   background-color: inherit;
+}
+.permessi {
+  color: crimson;
+}
+
+.inaz-command.disabled {
+  color: #444;
+}
+.inaz-commands > i {
+  margin-top: -.2em;
+  margin-left: .5em;
+}
+
+.inaz-commands > .inaz-command:not(.disabled):hover {
+  color: yellowgreen;
+  cursor: pointer;
 }

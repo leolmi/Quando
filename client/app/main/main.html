@@ -5,9 +5,12 @@
   </div>
   <form class="form-horizontal">
     <div class="form-group">
-      <label class="col-xs-6 control-label">Ore da fare</label>
+      <label class="col-xs-6 control-label">Ore da fare / Permesso</label>
       <div class="col-xs-6">
-        <input class="form-control work-hour" type="text" ng-model="context.o" ng-change="recalc()">
+        <input class="form-control work-hour" type="text" ng-model="context.o" ng-change="recalc()"
+               title="Qui metti le ore che lavori"> /
+        <input class="form-control work-hour permessi" type="text" ng-model="context.p" ng-change="recalc()"
+               title="Qui metti le ore di permesso">
       </div>
     </div>
     <div class="form-group">
@@ -20,6 +23,20 @@
       <label class="col-xs-6 control-label">Uscita prevista alle:</label>
       <div class="col-xs-6">
         <div class="form-control result">{{context.exit}}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-xs-6 control-label inaz-commands">
+        <i class="fa fa-3x inaz-command" ng-class="{'fa-toggle-on':context.user.auto,'fa-toggle-off':!context.user.auto}"
+           ng-show="context.user.name && context.user.password" ng-click="toggleAutoInaz()"
+           title="Se lo accendi allinea automaticamente i dati con quelli del portale inaz (ogni 30sec)"></i>
+        <i class="fa fa-3x fa-cloud-download inaz-command" ng-hide="milking" ng-click="inaz()" ng-class="{'disabled':!context.user.name || !context.user.password || context.user.auto}"
+           title="Allinea manualmente con i dati del portale inaz"></i>
+        <i class="fa fa-3x fa-cog fa-spin" ng-show="milking"></i>
+      </label>
+      <div class="col-xs-6">
+        <input class="form-control" type="text" ng-model="context.user.name" placeholder="name" title="Nome utente per il portale inaz"> /
+        <input class="form-control" type="password" ng-model="context.user.password" placeholder="pswrd" title="Password per il portale inaz">
       </div>
     </div>
   </form>
