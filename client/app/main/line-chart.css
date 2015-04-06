@@ -1,0 +1,42 @@
+.line-chart-back {
+  display: block;
+  position: relative;
+  height: 34px;
+  margin-bottom: 12px;
+  background-color: #333;
+  border-radius: 3px;
+}
+.line-chart-back > p {
+  position: absolute;
+  top: 0;
+  font-size: 10px;
+}
+.line-chart-item {
+  position: absolute;
+  left: 0;
+  top:12px;
+  height: 12px;
+  border-radius: 2px;
+  text-align: right;
+  font-size: 10px;
+}
+
+.item-in {
+  background-color: darkorange;
+}
+
+.item-out {
+  background-color: orangered;
+}
+
+.chart-item-time {
+  position: absolute;
+  color: #888;
+}
+
+.item-in > .chart-item-time {
+  top:12px;
+}
+.item-out > .chart-item-time {
+  top:-12px;
+}

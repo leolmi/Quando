@@ -1,0 +1,8 @@
+<div class="line-chart-back">
+  <p>{{item.day}}</p>
+  <div class="line-chart-item" ng-repeat="i in item.items"
+       ng-style="{width:(i.time-480)*zoom+'px', 'z-index':100-$index}"
+       ng-class="{'item-in':i['C4']=='E','item-out':i['C4']=='U'}">
+    <span class="chart-item-time">{{getTime(i.time)}}</span>
+  </div>
+</div>

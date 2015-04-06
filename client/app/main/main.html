@@ -27,10 +27,13 @@
     </div>
     <div class="form-group">
       <label class="col-xs-6 control-label inaz-commands">
+        <span ng-hide="context.user.name && context.user.password">Credenziali INAZ:</span>
         <i class="fa fa-3x inaz-command" ng-class="{'fa-toggle-on':context.user.auto,'fa-toggle-off':!context.user.auto}"
            ng-show="context.user.name && context.user.password" ng-click="toggleAutoInaz()"
            title="Se lo accendi allinea automaticamente i dati con quelli del portale inaz (ogni 30sec)"></i>
-        <i class="fa fa-3x fa-cloud-download inaz-command" ng-hide="milking" ng-click="inaz()" ng-class="{'disabled':!context.user.name || !context.user.password || context.user.auto}"
+        <i class="fa fa-3x fa-cloud-download inaz-command" ng-click="inaz()"
+           ng-class="{'disabled':!context.user.name || !context.user.password || context.user.auto}"
+           ng-show="context.user.name && context.user.password && !milking"
            title="Allinea manualmente con i dati del portale inaz"></i>
         <i class="fa fa-3x fa-cog fa-spin" ng-show="milking"></i>
       </label>
@@ -41,4 +44,9 @@
     </div>
   </form>
   <kbd>beta</kbd>
+</div>
+<i class="details fa fa-2x fa-calendar" ng-class="{'enabled':context.user.name && context.user.password}" ng-click="inazall()"></i>
+<div class="allitems-charts" ng-class="{'visible':context.allDaysItems.length}">
+  <p>Storico</p>
+  <line-chart ng-repeat="i in context.allDaysItems" ng-model="i"></line-chart>
 </div>

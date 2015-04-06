@@ -14,36 +14,50 @@ angular.module('Quando')
       }],
       debug:{}
     };
-
+    /**
+     * C0 - numero
+     * C1 - data (dd/MM/yyyy)
+     * C2 - ora
+     * C3 - minuti
+     * C4 - tipo (E o U)
+     * @type {boolean}
+     */
     $scope.milking = false;
-    function milkinaz() {
+    function milkinaz(all) {
       if ($scope.milking) return;
       $scope.milking = true;
+      $scope.context.user.all = all;
       $http.post('/api/inaz', $scope.context.user)
         .success(function(data) {
           if (data && data.length){
-            var items = [];
-            var i = {};
-            data.forEach(function(r){
-              if (r['C4']=='E'){
-                if (i.E){
-                  items.push(i);
-                  i = {};
+            if (all) {
+              $scope.context.allitems = data;
+              $scope.calcAllItems();
+            }
+            else {
+              var items = [];
+              var i = {};
+              data.forEach(function (r) {
+                if (r['C4'] == 'E') {
+                  if (i.E) {
+                    items.push(i);
+                    i = {};
+                  }
+                  i.E = r['C2'] + ':' + r['C3'];
                 }
-                i.E = r['C2']+':'+r['C3'];
-              }
-              else if (r['C4']=='U'){
-                if (i.U){
-                  items.push(i);
-                  i = {};
+                else if (r['C4'] == 'U') {
+                  if (i.U) {
+                    items.push(i);
+                    i = {};
+                  }
+                  i.U = r['C2'] + ':' + r['C3'];
                 }
-                i.U = r['C2']+':'+r['C3'];
-              }
-            });
-            if (i.E || i.U)
-              items.push(i);
-            $scope.context.items = items;
-            $scope.recalc();
+              });
+              if (i.E || i.U)
+                items.push(i);
+              $scope.context.items = items;
+              $scope.recalc();
+            }
           }
         })
         .error(function(err){
@@ -197,9 +211,48 @@ angular.module('Quando')
       checkAutoMilk();
     };
 
+    $scope.inazall = function() {
+      if ($scope.context.allDaysItems && $scope.context.allDaysItems.length)
+        $scope.context.allDaysItems = [];
+      else
+        milkinaz(true);
+    };
+
     $scope.inaz = function() {
       if (!$scope.context.user.name || !$scope.context.user.password || $scope.context.user.auto)
         return;
       milkinaz();
+    };
+
+    /**
+     * C0 - numero
+     * C1 - data (dd/MM/yyyy)
+     * C2 - ora
+     * C3 - minuti
+     * C4 - tipo (E o U)
+     */
+    function addItems(daysItems,day,dayItems) {
+      if (dayItems.length)
+        daysItems.push({day: day, items: dayItems.sort(function (i1, i2) {
+          if (i1.time > i2.time) return 1;
+          if (i1.time < i2.time) return -1;
+          return 0;
+        })});
+    }
+
+    $scope.calcAllItems = function() {
+      if (!$scope.context.allitems || $scope.context.allitems.length<=0) return;
+      var dayItems = [], daysItems = [];
+      var day = '';
+      $scope.context.allitems.forEach(function(i){
+        if (day != i['C1']){
+          addItems(daysItems,day,dayItems);
+          day = i['C1']; dayItems = [];
+        }
+        i.time = getMinutes(i['C2']+':'+i['C3']);
+        dayItems.push(i);
+      });
+      addItems(daysItems,day,dayItems);
+      $scope.context.allDaysItems = daysItems;
     };
   }]);

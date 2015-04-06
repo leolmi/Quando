@@ -337,10 +337,18 @@ exports.data = function(req, res) {
         if (err) return handleError(res, err);
 
         var table = parseInaz(c3);
-        var now = new Date();
-        var date = merge(now.getDate())+'/'+merge((now.getMonth()+1))+'/'+now.getFullYear();
-        var result = table.filter(function(r){ return r['C1']==date; }).reverse();
-        console.log('RISULTATI: '+JSON.stringify(result));
+        var result;
+        if (user.all) {
+          result = table;
+        }
+        else {
+          var now = new Date();
+          var date = merge(now.getDate()) + '/' + merge((now.getMonth() + 1)) + '/' + now.getFullYear();
+          result = table.filter(function (r) {
+            return r['C1'] == date;
+          }).reverse();
+        }
+        console.log('RISULTATI: ' + JSON.stringify(result));
         return res.json(200, result);
       });
     });
