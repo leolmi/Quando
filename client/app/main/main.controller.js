@@ -132,8 +132,8 @@ angular.module('Quando')
 
     $scope.recalc = function(){
       var mP = 0;
-      var mT = parseInt($scope.context.o)*60 || 0;
-      var mPP = parseInt($scope.context.p)*60 || 0;
+      var mT = getMinutes($scope.context.o);
+      var mPP = getMinutes($scope.context.p);
       var mL = 0;
       var lastok = false;
       var firstE = 0;
