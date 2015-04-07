@@ -216,11 +216,11 @@ function chainOfRequests(options, sequence, i, cb) {
 
   options.headers['content-length'] = data_str ? data_str.length : 0;
 
-  //console.log('['+sequence[i].title+']-REQUEST BODY: '+data_str);
+  console.log('['+sequence[i].title+']-REQUEST BODY: '+data_str);
   doHttpsRequest(sequence[i].title, options, data_str, undefined, function(o, r, c) {
     if (r.code!=200)
       return cb(new Error('['+sequence[i].title+'] - terminata con codice: '+r.code));
-    //console.log('['+(i+1)+' '+sequence[i].title+'] - RICHIESTA EFFETTUATA CON SUCCESSO, CONTENT: '+c);
+    console.log('['+(i+1)+' '+sequence[i].title+'] - RICHIESTA EFFETTUATA CON SUCCESSO, CONTENT: '+c);
 
     if (i>=sequence.length-1)
       return cb(null, c);
@@ -288,7 +288,7 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_HOME,
         referer:process.env.INAZ_PATH_REFERER_TOPM,
         data: {
-          AccessCode:'127',
+          AccessCode:process.env.INAZ_AccessCode,
           ParamFrame:'',
           VoceMenu:'',
           ParamPage:''
@@ -299,10 +299,10 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_START,
         referer:process.env.INAZ_PATH_REFERER_TOPM,
         data:{
-          AccessCode:'127',
+          AccessCode:process.env.INAZ_AccessCode,
           ParamFrame:process.env.INAZ_START_ParamFrame,
           ParamPage:'',
-          VoceMenu:'10164'
+          VoceMenu:process.env.INAZ_VoceMenu
         }
       },{
         title:'FIND',
@@ -310,7 +310,7 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_FIND,
         referer:process.env.INAZ_PATH_REFERER_START,
         data: {
-          AccessCode:'127',
+          AccessCode:process.env.INAZ_AccessCode,
           ParamPage:process.env.INAZ_FIND_ParamPage
         }
       },{
@@ -319,7 +319,7 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_TIMB,
         referer:process.env.INAZ_PATH_REFERER_FIND,
         data: {
-          AccessCode:'127',
+          AccessCode:process.env.INAZ_AccessCode,
           ParamPage:process.env.INAZ_TIMB_ParamPage,
           ListaSel:'',
           ActionPage:'',

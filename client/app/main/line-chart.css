@@ -1,7 +1,7 @@
 .line-chart-back {
   display: block;
   position: relative;
-  height: 34px;
+  height: 36px;
   margin-bottom: 12px;
   background-color: #333;
   border-radius: 3px;
@@ -30,8 +30,9 @@
 }
 
 .chart-item-time {
-  position: absolute;
   color: #888;
+  left: 12px;
+  position: relative;
 }
 
 .item-in > .chart-item-time {
