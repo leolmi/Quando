@@ -113,7 +113,7 @@ angular.module('Quando')
     }
 
     function isLunch(e, u) {
-      return (e>(12*60+30) && u<(14*60+30));
+      return (u>0 && e>0 && e>(12*60+30) && u<(14*60+30));
     }
 
     function getTime(m) {
@@ -141,6 +141,7 @@ angular.module('Quando')
       var lastE = 0;
       var m1 = 0, m2 = 0;
       var lunch = false;
+      var lunchable = true;
       $scope.context.items.forEach(function(i){
         m1 = getMinutes(i.E);
         /// il minimo ingresso è alle 8:30
@@ -170,12 +171,14 @@ angular.module('Quando')
           if (firstE == 0) {
             firstE = m1;
             /// l'ingresso dopo le 9:00 va scaglionato sulle mezz'ore
-            if (firstE>(9*60)){
+            if (firstE>(9*60) && mPP<4){
               var meT = firstE - (9*60);
               var meM = Math.floor(meT / 30);
               if (meM*30<meT) meM++;
               mE = meM*30-meT;
             }
+            if (mPP>=4)
+              lunchable = false;
           }
           if (m2>0)
             lastE = m2
@@ -183,20 +186,11 @@ angular.module('Quando')
       });
       if (lastok)
         $scope.context.items.push({E:'',U:''});
-      if (!lunch)
+      if (!lunch && lunchable)
         mP = 30;
       var r = lastE+mT-mL+mP-mPP+mE;
 
-      $scope.context.debug =  {
-        lastE:lastE,
-        lastOra:getTime(lastE),
-        mT:mT,
-        mL:mL,
-        mP:mP,
-        mE:mE
-      };
-
-      $scope.context.exit = r>0 ? getTime(r) : '?';
+      $scope.context.exit = (r>(8*60) && r<(23*60)) ? getTime(r) : '?';
     };
 
     $scope.clear = function() {
