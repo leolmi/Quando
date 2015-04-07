@@ -132,6 +132,7 @@ angular.module('Quando')
 
     $scope.recalc = function(){
       var mP = 0;
+      var mE = 0;
       var mT = getMinutes($scope.context.o);
       var mPP = getMinutes($scope.context.p);
       var mL = 0;
@@ -166,8 +167,16 @@ angular.module('Quando')
 
         if (m1>0 && i.E) {
           lastE = m1;
-          if (firstE == 0)
+          if (firstE == 0) {
             firstE = m1;
+            /// l'ingresso dopo le 9:00 va scaglionato sulle mezz'ore
+            if (firstE>(9*60)){
+              var meT = firstE - (9*60);
+              var meM = Math.floor(meT / 30);
+              if (meM*30<meT) meM++;
+              mE = meM*30-meT;
+            }
+          }
           if (m2>0)
             lastE = m2
         }
@@ -176,14 +185,15 @@ angular.module('Quando')
         $scope.context.items.push({E:'',U:''});
       if (!lunch)
         mP = 30;
-      var r = lastE+mT-mL+mP-mPP;
+      var r = lastE+mT-mL+mP-mPP+mE;
 
       $scope.context.debug =  {
         lastE:lastE,
         lastOra:getTime(lastE),
         mT:mT,
         mL:mL,
-        mP:mP
+        mP:mP,
+        mE:mE
       };
 
       $scope.context.exit = r>0 ? getTime(r) : '?';
