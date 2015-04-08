@@ -216,11 +216,11 @@ function chainOfRequests(options, sequence, i, cb) {
 
   options.headers['content-length'] = data_str ? data_str.length : 0;
 
-  console.log('['+sequence[i].title+']-REQUEST BODY: '+data_str);
+  //console.log('['+sequence[i].title+']-REQUEST BODY: '+data_str);
   doHttpsRequest(sequence[i].title, options, data_str, undefined, function(o, r, c) {
     if (r.code!=200)
       return cb(new Error('['+sequence[i].title+'] - terminata con codice: '+r.code));
-    console.log('['+(i+1)+' '+sequence[i].title+'] - RICHIESTA EFFETTUATA CON SUCCESSO, CONTENT: '+c);
+    //console.log('['+(i+1)+' '+sequence[i].title+'] - RICHIESTA EFFETTUATA CON SUCCESSO, CONTENT: '+c);
 
     if (i>=sequence.length-1)
       return cb(null, c);
@@ -288,7 +288,7 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_HOME,
         referer:process.env.INAZ_PATH_REFERER_TOPM,
         data: {
-          AccessCode:process.env.INAZ_AccessCode,
+          AccessCode:process.env.INAZ_P2_AccessCode,
           ParamFrame:'',
           VoceMenu:'',
           ParamPage:''
@@ -299,10 +299,10 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_START,
         referer:process.env.INAZ_PATH_REFERER_TOPM,
         data:{
-          AccessCode:process.env.INAZ_AccessCode,
-          ParamFrame:process.env.INAZ_START_ParamFrame,
+          AccessCode:process.env.INAZ_P2_AccessCode,
+          ParamFrame:paramsReplace(process.env.INAZ_START_ParamFrame),
           ParamPage:'',
-          VoceMenu:process.env.INAZ_VoceMenu
+          VoceMenu:process.env.INAZ_P1_VoceMenu
         }
       },{
         title:'FIND',
@@ -310,8 +310,8 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_FIND,
         referer:process.env.INAZ_PATH_REFERER_START,
         data: {
-          AccessCode:process.env.INAZ_AccessCode,
-          ParamPage:process.env.INAZ_FIND_ParamPage
+          AccessCode:process.env.INAZ_P2_AccessCode,
+          ParamPage:paramsReplace(process.env.INAZ_FIND_ParamPage)
         }
       },{
         title:'TIMB',
@@ -319,8 +319,8 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_TIMB,
         referer:process.env.INAZ_PATH_REFERER_FIND,
         data: {
-          AccessCode:process.env.INAZ_AccessCode,
-          ParamPage:process.env.INAZ_TIMB_ParamPage,
+          AccessCode:process.env.INAZ_P2_AccessCode,
+          ParamPage:paramsReplace(process.env.INAZ_TIMB_ParamPage),
           ListaSel:'',
           ActionPage:'',
           NomeFunzione:process.env.INAZ_TIMB_NomeFunzione,
@@ -348,13 +348,19 @@ exports.data = function(req, res) {
             return r['C1'] == date;
           }).reverse();
         }
-        console.log('RISULTATI: ' + JSON.stringify(result));
+        //console.log('RISULTATI: ' + JSON.stringify(result));
         return res.json(200, result);
       });
     });
   });
 };
 
+function paramsReplace(voice) {
+  voice = voice.replace('[P1]',process.env.INAZ_P1_VoceMenu);
+  voice = voice.replace('[P2]',process.env.INAZ_P2_AccessCode);
+  voice = voice.replace('[P3]',process.env.INAZ_P3_Query);
+  return voice;
+}
 
 function merge(v, tmpl) {
   tmpl = tmpl || '00';

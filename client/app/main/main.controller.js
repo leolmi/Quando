@@ -14,6 +14,13 @@ angular.module('Quando')
       }],
       debug:{}
     };
+
+    function timeCompare(r1, r2) {
+      if (r1.time > r2.time) return 1;
+      if (r1.time < r2.time) return -1;
+      return 0;
+    }
+
     /**
      * C0 - numero
      * C1 - data (dd/MM/yyyy)
@@ -37,6 +44,9 @@ angular.module('Quando')
             else {
               var items = [];
               var i = {};
+              data.forEach(function(r){ r.time = getMinutes(r['C2']+':'+r['C3']); });
+              data.sort(timeCompare);
+
               data.forEach(function (r) {
                 if (r['C4'] == 'E') {
                   if (i.E) {
@@ -237,11 +247,7 @@ angular.module('Quando')
      */
     function addItems(daysItems,day,dayItems) {
       if (dayItems.length)
-        daysItems.push({day: day, items: dayItems.sort(function (i1, i2) {
-          if (i1.time > i2.time) return 1;
-          if (i1.time < i2.time) return -1;
-          return 0;
-        })});
+        daysItems.push({day: day, items: dayItems.sort(timeCompare)});
     }
 
     $scope.calcAllItems = function() {
