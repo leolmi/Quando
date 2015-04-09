@@ -22,7 +22,7 @@
     <div class="form-group">
       <label class="col-xs-6 control-label">Uscita prevista alle:</label>
       <div class="col-xs-6">
-        <div class="form-control result">{{context.exit}}</div>
+        <div class="form-control result transition" ng-class="{'alarmed':alarmed}">{{context.exit}}</div>
         <i class="fa fa-2x fa-volume-up alarm aslink" ng-show="isalarm" ng-click="alarm()"></i>
       </div>
     </div>

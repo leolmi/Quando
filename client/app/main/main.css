@@ -62,6 +62,11 @@ tempi-item > input.alarmed {
   font-size: 26px;
   background-color: inherit;
 }
+.result.alarmed {
+  color: red;
+  font-size: 28px;
+}
+
 .permessi {
   color: crimson;
 }

@@ -326,7 +326,8 @@ angular.module('Quando')
         var nowm = getNowM();
         //verifica orario uscita
         if ($scope.context.exitm && alarm.paused && nowm>=$scope.context.exitm) {
-            $scope.alarm();
+          $scope.alarmed = true;
+          $scope.alarm();
         }
         else {
           //verifica orari intermedi
@@ -348,6 +349,7 @@ angular.module('Quando')
         $interval.cancel(_tick);
         _tick = undefined;
       }
+      $scope.alarmed = false;
     }
 
     $scope.alarm = function() {
