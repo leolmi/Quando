@@ -104,6 +104,18 @@ tempi-item > input.alarmed {
 .details.enabled {
   left: 540px;
 }
+
+
+.details-help {
+  top: 100px;
+  left: 540px;
+}
+.details-help.enabled{
+  color: yellowgreen;
+}
+.details-history {
+  top: 158px;
+}
 .allitems-charts {
   width: 500px;
   background-color: #222;
@@ -148,4 +160,35 @@ tempi-item > input.alarmed {
   position: absolute;
   left: 10px;
   bottom: 10px;
+}
+
+.q-help {
+  position: absolute;
+  margin-left: 650px;
+  width: 550px;
+  top: 0;
+}
+
+.q-help > h1 {
+  font-size: 30px;
+}
+.q-help > p {
+  margin-top: 50px;
+}
+.q-help > p > a {
+  text-decoration: none;
+  color: inherit;
+  font-size: 20px;
+}
+.q-help > p > a:hover{
+  color: #000;
+}
+.q-section > h1 {
+  font-size: 20px;
+}
+.q-section > h1 > i {
+  font-size: 32px;
+}
+.q-section > p {
+  font-size: 12px;
 }

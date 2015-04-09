@@ -9,6 +9,8 @@ angular.module('Quando')
     var alarmOwner;
     var _tick;
 
+    $scope.helpon = false;
+
     $scope.context = {
       o:'8',
       exit:'?',
@@ -18,6 +20,32 @@ angular.module('Quando')
       }],
       alarms:false,
       debug:{}
+    };
+
+    $scope.instractions = {
+      title:'Cosa puoi fare con QUANDO?',
+      footer:'Se non ti basta .....',
+      sections:[{
+        icon:'fa-clock-o',
+        title:'Puoi simulare le tue entrate ed uscite...',
+        desc:'Inserendo le tue entrate e le tue uscite otterrai in automatico l\'individuazione della pausa pranzo e l\'ora di uscita.'
+      },{
+        icon:'fa-clock-o',
+        title:'Puoi impostare le ore di lavoro e di permesso...',
+        desc:'Valorizzando correttamente le ore di permesso o di lavoro nel giorno puoi variare il calcolo dell\'ora di uscita.'
+      },{
+        icon:'fa-cloud-download',
+        title:'Con le credenziali INAZ acquisisci i dati reali...',
+        desc:'Inserendo le credenziali INAZ puoi scaricare manualmente le bedgiature cliccando sulla nuvoletta.\r\nOppure, attivando l\'interruttore puoi lasciare fare all\'applicazione che allinerà i dati ogni mezzo minuto.'
+      },{
+        icon:'fa-calendar',
+        title:'Vedere lo storico dell\'ultima settimana...',
+        desc:'Inserendo le credenziali INAZ puoi scaricare lo storico degli ultimi giorni cliccando sul calendarino sulla destra.'
+      },{
+        icon:'fa-bullhorn',
+        title:'Aggiungere un allarme per ogni orario che desideri...',
+        desc:'Attivando il megafonino in basso a sinistra puoi farti avvisare acusticamente (quindi devi avere il volume e degli altoparlanti attivi) all\'ora d\'uscita e, attivandoli separatamente ad ogni orario definito (altoparlantino nella cella dell\'orario valorizzato).'
+      }]
     };
 
     function timeCompare(r1, r2) {
@@ -353,6 +381,10 @@ angular.module('Quando')
         $scope.context.alarms = true;
         watchTime();
       }
+    };
+
+    $scope.help = function() {
+      $scope.helpon = !$scope.helpon;
     };
 
     $scope.recalc();

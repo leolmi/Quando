@@ -50,8 +50,17 @@
   </span>
   <kbd>beta</kbd>
 </div>
-<i class="details fa fa-2x fa-calendar" ng-class="{'enabled':context.user.name && context.user.password}" ng-click="inazall()"></i>
+<i class="details details-help fa fa-2x fa-user-md" ng-class="{'enabled':helpon}" ng-click="help()"></i>
+<i class="details details-history fa fa-2x fa-calendar" ng-class="{'enabled':context.user.name && context.user.password}" ng-click="inazall()"></i>
 <div class="allitems-charts" ng-class="{'visible':context.allDaysItems.length}">
   <p>Storico</p>
   <line-chart ng-repeat="i in context.allDaysItems" ng-model="i"></line-chart>
+</div>
+<div class="q-help" ng-show="helpon">
+  <h1>{{instractions.title}}</h1>
+  <div class="q-section" ng-repeat="s in instractions.sections">
+    <h1><i class="fa fa-fw fa-3x" ng-class="s.icon"></i> {{s.title}}</h1>
+    <p>{{s.desc}}</p>
+  </div>
+  <p>{{instractions.footer}} <a href="https://github.com/leolmi/Quando/issues"><i class="fa fa-user-md"></i></a></p>
 </div>
