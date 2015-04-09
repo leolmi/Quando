@@ -46,6 +46,12 @@
 tempi-item {
   display: block;
 }
+
+tempi-item > input.alarmed {
+  background-color: red;
+  color: #eee;
+}
+
 .result {
   border: none;
   -webkit-box-shadow: none;
@@ -123,4 +129,23 @@ tempi-item {
 .allitems-charts > p {
   font-size: 12px;
   text-transform: uppercase;
+}
+
+.alarm {
+  margin-left: 20px;
+}
+
+.e-alarm,
+.u-alarm {
+  font-size: 12px;
+  position: absolute;
+  color: #333;
+  margin-left: -14px;
+  margin-top: 2px;
+}
+
+.calcolator > .fa-stack {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
 }

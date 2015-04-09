@@ -23,6 +23,7 @@
       <label class="col-xs-6 control-label">Uscita prevista alle:</label>
       <div class="col-xs-6">
         <div class="form-control result">{{context.exit}}</div>
+        <i class="fa fa-2x fa-volume-up alarm aslink" ng-show="isalarm" ng-click="alarm()"></i>
       </div>
     </div>
     <div class="form-group">
@@ -43,6 +44,10 @@
       </div>
     </div>
   </form>
+  <span class="fa-stack fa-lg aslink" ng-click="toggleAlarms()" title="Attiva gli allarmi">
+    <i class="fa fa-bullhorn fa-stack-1x"></i>
+    <i class="fa fa-ban fa-stack-2x text-danger" ng-show="!context.alarms"></i>
+  </span>
   <kbd>beta</kbd>
 </div>
 <i class="details fa fa-2x fa-calendar" ng-class="{'enabled':context.user.name && context.user.password}" ng-click="inazall()"></i>

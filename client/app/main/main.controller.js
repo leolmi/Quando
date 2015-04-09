@@ -5,6 +5,10 @@
 
 angular.module('Quando')
   .controller('TempiCtrl', ['$scope','$http','$interval', function ($scope,$http,$interval) {
+    var alarm = new Audio('assets/media/alarm.mp3');
+    var alarmOwner;
+    var _tick;
+
     $scope.context = {
       o:'8',
       exit:'?',
@@ -12,6 +16,7 @@ angular.module('Quando')
         E:'8:30',
         U:''
       }],
+      alarms:false,
       debug:{}
     };
 
@@ -140,6 +145,12 @@ angular.module('Quando')
       return days[date.getDay()-1]+' '+date.getDate()+' '+months[date.getMonth()]+' '+date.getFullYear();
     };
 
+    function calcMinutes(i, type) {
+      var m = getMinutes(i[type]);
+      i[type+'M']=m;
+      return m;
+    }
+
     $scope.recalc = function(){
       var mP = 0;
       var mE = 0;
@@ -153,7 +164,7 @@ angular.module('Quando')
       var lunch = false;
       var lunchable = true;
       $scope.context.items.forEach(function(i){
-        m1 = getMinutes(i.E);
+        m1 = calcMinutes(i,'E');
         /// il minimo ingresso è alle 8:30
         if (m1<(8*60+30))
           m1 = (8*60+30);
@@ -167,7 +178,7 @@ angular.module('Quando')
           i.L = getTime(p);
         }
         else i.lunch = false;
-        m2 = getMinutes(i.U);
+        m2 = calcMinutes(i,'U');
         lastok = (m2 > m1);
         if (lastok) {
           var l = (m2 - m1);
@@ -200,7 +211,11 @@ angular.module('Quando')
         mP = 30;
       var r = lastE+mT-mL+mP-mPP+mE;
 
-      $scope.context.exit = (r>(8*60) && r<(23*60)) ? getTime(r) : '?';
+      if (r<=(8*60) || r>=(23*60)) r = 0;
+
+      $scope.context.exitm = r;
+      $scope.context.exit = (r>0) ? getTime(r) : '?';
+      watchTime();
     };
 
     $scope.clear = function() {
@@ -265,4 +280,80 @@ angular.module('Quando')
       addItems(daysItems,day,dayItems);
       $scope.context.allDaysItems = daysItems;
     };
+
+    function getNowM() {
+      var now = new Date();
+      return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function activateItemAlarm(item, property) {
+      alarmOwner={i:item,p:property};
+      $scope.alarm();
+      return true;
+    }
+
+    function watchTime() {
+      if (angular.isDefined(_tick) || !$scope.context.alarms) return;
+      _tick = $interval(function () {
+        var nowm = getNowM();
+        //verifica orario uscita
+        if ($scope.context.exitm && alarm.paused && nowm>=$scope.context.exitm) {
+            $scope.alarm();
+        }
+        else {
+          //verifica orari intermedi
+          $scope.context.items.some(function (i) {
+            if (i['EM'] && i['EM']<=nowm && i.ealarm){
+              return activateItemAlarm(i, 'ealarm');
+            }
+            else if (i['UM'] && i['UM']<=nowm && i.ualarm){
+              return activateItemAlarm(i, 'ualarm');
+            }
+            return false;
+          });
+        }
+      }, 10000);
+    }
+
+    function stopWatchTime() {
+      if (angular.isDefined(_tick)) {
+        $interval.cancel(_tick);
+        _tick = undefined;
+      }
+    }
+
+    $scope.alarm = function() {
+      if (alarm.paused) {
+        if ($scope.context.alarms)
+          alarm.play();
+        if (alarmOwner)
+          alarmOwner.i[alarmOwner.p+'ed'] = true;
+      }
+      else {
+        alarm.pause();
+        if (!alarmOwner)
+          stopWatchTime();
+        if (alarmOwner) {
+          alarmOwner.i[alarmOwner.p+'ed'] = false;
+          alarmOwner.i[alarmOwner.p] = false;
+          alarmOwner = null;
+        }
+      }
+      $scope.isalarm =!alarm.paused;
+    };
+
+    $scope.toggleAlarms = function() {
+      if ($scope.context.alarms){
+        $scope.context.alarms = false;
+        stopWatchTime();
+        if (!alarm.paused)
+          $scope.alarm();
+      }
+      else {
+        $scope.context.alarms = true;
+        watchTime();
+      }
+    };
+
+    $scope.recalc();
   }]);
