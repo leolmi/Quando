@@ -107,12 +107,12 @@ angular.module('Quando')
               $scope.recalc();
             }
           }
+          $scope.milking = false;
         })
         .error(function(err){
-          alert('ERRORE: '+JSON.stringify(err));
-        })
-        .then(function() {
           $scope.milking = false;
+          var msg = err ? JSON.stringify(err) : 'verificare le credenziali e riprovare.';
+          alert('ERRORE: '+msg);
         });
     }
 
