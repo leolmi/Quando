@@ -111,7 +111,7 @@ angular.module('Quando')
         })
         .error(function(err){
           $scope.milking = false;
-          var msg = err ? JSON.stringify(err) : 'verificare le credenziali e riprovare.';
+          var msg = (err && !$.isEmptyObject(err)) ? JSON.stringify(err) : 'verificare le credenziali e riprovare.';
           alert('ERRORE: '+msg);
         });
     }
