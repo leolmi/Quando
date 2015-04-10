@@ -1,0 +1,5 @@
+progress-clock > div {
+  display: block;
+  position: absolute;
+}
+

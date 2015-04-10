@@ -4,8 +4,13 @@
 
 'use strict';
 
-// Set default node environment to development
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+// LOAD LOCAL ENVIROMENT VARIABLES
+//////////////////////////////////////////////////
+//var local = require('./config/local.env.js');
+//for (var p in local)
+//  process.env[p]=local[p];
+//////////////////////////////////////////////////
+
 
 var express = require('express');
 var config = require('./config/environment');

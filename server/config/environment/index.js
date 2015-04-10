@@ -18,8 +18,15 @@ var all = {
   // Root path of server
   root: path.normalize(__dirname + '/../../..'),
 
+  ip: process.env.OPENSHIFT_NODEJS_IP ||
+      process.env.IP ||
+      undefined,
+
   // Server port
-  port: process.env.PORT || 9000,
+  port: process.env.OPENSHIFT_NODEJS_PORT ||
+        process.env.PORT ||
+        9000,
+
 
   // Should we populate the DB with sample data?
   seedDB: false,
@@ -32,6 +39,4 @@ var all = {
 
 // Export the config object based on the NODE_ENV
 // ==============================================
-module.exports = _.merge(
-  all,
-  require('./' + process.env.NODE_ENV + '.js') || {});
+module.exports = all;

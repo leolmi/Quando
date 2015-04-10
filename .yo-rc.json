@@ -5,7 +5,7 @@
     "routesNeedle": "// Insert routes below",
     "routesBase": "/api/",
     "pluralizeRoutes": true,
-    "insertSockets": true,
+    "insertSockets": false,
     "registerSocketsFile": "server/config/socketio.js",
     "socketsNeedle": "// Insert sockets below",
     "filters": {
@@ -15,7 +15,7 @@
       "ngroute": true,
       "bootstrap": true,
       "uibootstrap": true,
-      "socketio": true,
+      "socketio": false,
       "mongoose": true,
       "auth": true,
       "oauth": true,

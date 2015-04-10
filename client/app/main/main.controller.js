@@ -10,7 +10,12 @@ angular.module('Quando')
     var _tick;
 
     $scope.helpon = false;
-
+    $scope.progress = {
+      forecolor:'yellowgreen',
+      value:0,
+      diameter:32,
+      border:1
+    };
     $scope.context = {
       o:'8',
       exit:'?',
@@ -241,6 +246,7 @@ angular.module('Quando')
 
       if (r<=(8*60) || r>=(23*60)) r = 0;
 
+      $scope.context.startm = firstE;
       $scope.context.exitm = r;
       $scope.context.exit = (r>0) ? getTime(r) : '?';
       watchTime();
@@ -388,6 +394,17 @@ angular.module('Quando')
     $scope.help = function() {
       $scope.helpon = !$scope.helpon;
     };
+
+    $interval(function () {
+      var nm = getNowM();
+      var lm = $scope.context.exitm - $scope.context.startm;
+      var rm = getNowM() - $scope.context.startm;
+      var elps = $scope.context.exitm - nm;
+      var perc = (lm<=0 || rm<=0) ? 0 : Math.floor((rm * 100)/lm);
+      $scope.progress.value = perc;
+      $scope.progress.elapsed = getTime(elps);
+    },2000);
+
 
     $scope.recalc();
   }]);
