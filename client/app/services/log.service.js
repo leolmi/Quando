@@ -27,28 +27,26 @@ angular.module('Quando')
       }
     }
 
-    var toastOk = function(title, message){
+    function validateMessage(message) {
       if (typeof message!='string')
-        message = JSON.stringify(message);
-      toastr.success(message, title, getToastrSettings());
+        return JSON.stringify(message);
+      return message;
+    }
+
+    var toastOk = function(title, message){
+      toastr.success(validateMessage(message), title, getToastrSettings());
     };
 
     var toastError = function(title, message){
-      if (typeof message!='string')
-        message = JSON.stringify(message);
-      toastr.error(message, title, getToastrSettings());
+      toastr.error(validateMessage(message), title, getToastrSettings());
     };
 
     var toastInfo = function(title, message){
-      if (typeof message!='string')
-        message = JSON.stringify(message);
-      toastr.info(message, title, getToastrSettings());
+      toastr.info(validateMessage(message), title, getToastrSettings());
     };
 
     var toastWarning = function(title, message){
-      if (typeof message!='string')
-        message = JSON.stringify(message);
-      toastr.warning(message, title, getToastrSettings());
+      toastr.warning(validateMessage(message), title, getToastrSettings());
     };
 
     return {

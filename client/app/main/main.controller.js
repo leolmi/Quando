@@ -146,7 +146,7 @@ angular.module('Quando')
         .error(function(err){
           $scope.milking = false;
           var msg = (err && !$.isEmptyObject(err)) ? JSON.stringify(err) : 'verificare le credenziali e riprovare.';
-          //Logger.error('ERRORE richiesta portale INAZ', msg);
+          Logger.error('ERRORE richiesta portale INAZ', msg);
         });
     }
 
@@ -447,4 +447,8 @@ angular.module('Quando')
 
 
     $scope.recalc();
+
+    $scope.test = function() {
+      Logger.ok("Titolo del popup","contenuto del messaggio in popup");
+    };
   }]);
