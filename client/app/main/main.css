@@ -1,13 +1,25 @@
-.calcolator {
-  position: relative;
-  width: 500px;
-  background-color: #222;
-  margin: 50px 0 20px 51px;
+.quando-container {
   padding: 24px;
+  background-color: #222;
   color: #eee;
+  overflow: hidden;
   border-radius: 6px;
   -webkit-box-shadow: 0 6px 21px rgba(0,0,0,0.7);
   box-shadow: 0 6px 21px rgba(0,0,0,0.7);
+  -moz-transition: all .50s ease-in-out;
+  -o-transition: all .50s ease-in-out;
+  -webkit-transition: all .50s ease-in-out;
+  transition: all .50s ease-in-out;
+}
+.quando-container > p {
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.calcolator {
+  position: relative;
+  width: 500px;
+  margin: 50px 0 20px 51px;
   z-index: 10;
 }
 .calcolator > kbd {
@@ -96,6 +108,7 @@ tempi-item > input.alarmed {
   background-color: #444;
   color: #aaa;
   padding: 12px 18px;
+  z-index: 2;
   border-bottom-right-radius: 40px;
   border-top-right-radius: 40px;
   -moz-transition: all .50s ease-in-out;
@@ -126,30 +139,21 @@ tempi-item > input.alarmed {
 }
 .allitems-charts {
   width: 500px;
-  background-color: #222;
-  color: #eee;
-  border-radius: 6px;
   position: relative;
   margin-left: 50px;
   padding: 0 24px;
   height: 0;
-  overflow: hidden;
-  -webkit-box-shadow: 0 6px 21px rgba(0,0,0,0.7);
-  box-shadow: 0 6px 21px rgba(0,0,0,0.7);
   z-index: 10;
-  -moz-transition: all .50s ease-in-out;
-  -o-transition: all .50s ease-in-out;
-  -webkit-transition: all .50s ease-in-out;
-  transition: all .50s ease-in-out;
 }
 .allitems-charts.visible {
   padding: 24px;
   height: auto;
+  top: -50px;
 }
-.allitems-charts > p {
-  font-size: 12px;
-  text-transform: uppercase;
-}
+/*.allitems-charts > p {*/
+  /*font-size: 12px;*/
+  /*text-transform: uppercase;*/
+/*}*/
 
 .alarm {
   margin-left: 20px;
@@ -228,3 +232,38 @@ progress-clock {
   padding: 10px 30px;
 }
 
+.analisys {
+  position: fixed;
+  width: 500px;
+  margin-top: -74px;
+  z-index: 8;
+  display: none;
+  -moz-transition: all .50s ease-in-out;
+  -o-transition: all .50s ease-in-out;
+  -webkit-transition: all .50s ease-in-out;
+  transition: all .50s ease-in-out;
+}
+.analisys .form-control {
+  width: 100px;
+}
+
+.analisys.visible {
+  margin-left: 500px;
+  display: block;
+}
+
+.details-analisys{
+  visibility: hidden;   /*<< INVISIBILE*/
+  position: relative;
+  top: 50px;
+  width: 62px;
+  text-align: right;
+  -moz-transition: all .50s ease-in-out;
+  -o-transition: all .50s ease-in-out;
+  -webkit-transition: all .50s ease-in-out;
+  transition: all .50s ease-in-out;
+}
+
+.details-analisys.opened {
+  width: 590px;
+}

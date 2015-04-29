@@ -208,8 +208,10 @@ angular.module('Quando')
 
     var days = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
     var months = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-    $scope.getDate  = function() {
+    $scope.getDate  = function(small) {
       var date = new Date();
+      if (small)
+        return date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear();
       return days[date.getDay()-1]+' '+date.getDate()+' '+months[date.getMonth()]+' '+date.getFullYear();
     };
 
@@ -303,12 +305,15 @@ angular.module('Quando')
           U:''
         }],
         options:opt,
+        analisys:{
+          da:'01/01/2015',
+          a:$scope.getDate(true),
+          results:[]
+        },
         debug:{}
       };
       $scope.recalc();
     };
-
-    $scope.clear();
 
     $scope.toggleAutoInaz = function() {
       $scope.context.user.auto = !$scope.context.user.auto;
@@ -326,6 +331,26 @@ angular.module('Quando')
       if (!$scope.context.user.name || !$scope.context.user.password || $scope.context.user.auto)
         return;
       milkinaz();
+    };
+
+    $scope.analisys = function() {
+      $scope.analisyson = !$scope.analisyson;
+      if ($scope.analisyson)
+        $scope.recalcAnal();
+    };
+
+    $scope.recalcAnal = function() {
+      if (!$scope.context.allitems || $scope.context.allitems.length<=0) return;
+
+
+
+      var res = [
+          { name: "Totale ore da lavorare", value:"?" },
+          { name: "Totale ore lavorate", value:"?" },
+          { name: "Permessi", value:"?" },
+          { name: "Differenza", value:"?" }]
+
+      $scope.context.analisys.results = res;
     };
 
     /**
@@ -446,10 +471,5 @@ angular.module('Quando')
       $scope.progress.elapsed = getTime(elps);
     },2000);
 
-
-    $scope.recalc();
-
-    $scope.test = function() {
-      Logger.ok("Titolo del popup","contenuto del messaggio in popup");
-    };
+    $scope.clear();
   }]);

@@ -1,4 +1,4 @@
-<div class="calcolator">
+<div class="calcolator quando-container">
   <div class="header">
     Oggi è {{getDate()}}
     <i class="fa fa-2x fa-trash aslink" ng-click="clear()"></i>
@@ -63,24 +63,29 @@
 </div>
 <i class="details details-help fa fa-2x fa-user-md" ng-class="{'enabled':helpon}" ng-click="help()"></i>
 <i class="details details-history fa fa-2x fa-calendar" ng-class="{'enabled':context.user.name && context.user.password}" ng-click="inazall()"></i>
-<div class="allitems-charts" ng-class="{'visible':context.allDaysItems.length}">
+<i class="details details-analisys fa fa-2x fa-calculator" ng-class="{'enabled':context.allDaysItems.length, 'opened':analisyson}" ng-click="analisys()" ng-show="context.allDaysItems.length"></i>
+<div class="allitems-charts quando-container" ng-class="{'visible':context.allDaysItems.length}">
+  <div class="analisys quando-container" ng-class="{'visible':context.allDaysItems.length && analisyson}" ng-show="context.allDaysItems.length">
+    <p>Analisi</p>
+    <form class="form-horizontal">
+      <div class="form-group">
+        <label class="col-xs-5 control-label">Periodo:  da / a</label>
+        <div class="col-xs-7">
+          <input class="form-control" type="text" ng-model="context.analisys.da" ng-change="recalcAnal()"> /
+          <input class="form-control" type="text" ng-model="context.analisys.a" ng-change="recalcAnal()">
+        </div>
+      </div>
+    </form>
+    <div class="analisys-results" ng-show="context.analisys && context.analisys.results">
+      <dl class="dl-horizontal">
+        <dt ng-repeat-start="res in context.analisys.results">{{res.name}}</dt>
+        <dd ng-repeat-end>{{res.value}}</dd>
+      </dl>
+    </div>
+  </div>
   <p>Storico</p>
   <line-chart ng-repeat="i in context.allDaysItems" ng-model="i"></line-chart>
 </div>
-<!--<div class="analisys" ng-class="{'visible':context.allDaysItems.length && analisyson}">-->
-  <!--<p>Analisi</p>-->
-  <!--<form class="form-horizontal">-->
-    <!--<div class="form-group">-->
-      <!--<label class="col-xs-6 control-label">Ore da fare / Permesso</label>-->
-      <!--<div class="col-xs-6">-->
-        <!--<input class="form-control work-hour" type="text" ng-model="context.o" ng-change="recalc()"-->
-               <!--title="Qui metti le ore che lavori"> /-->
-        <!--<input class="form-control work-hour permessi" type="text" ng-model="context.p" ng-change="recalc()"-->
-               <!--title="Qui metti le ore di permesso">-->
-      <!--</div>-->
-    <!--</div>-->
-    <!--</form>-->
-<!--</div>-->
 <div class="q-help" ng-style="helpstyle">
   <h1>{{instractions.title}}</h1>
   <div class="q-section" ng-repeat="s in instractions.sections">

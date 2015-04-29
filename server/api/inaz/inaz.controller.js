@@ -370,7 +370,6 @@ function merge(v, tmpl) {
 }
 
 
-
 function manageHistory(opt, data, cb) {
   //console.log('RISULTATI: ' + JSON.stringify(data));
   cb = cb || noop;
@@ -417,12 +416,6 @@ function manageHistory(opt, data, cb) {
       cb(results);
     });
   });
-
-
-
-
-
-
 }
 
 /**
