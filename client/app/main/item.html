@@ -1,4 +1,4 @@
 <div class="lunch" ng-show="item.lunch"><i class="fa fa-coffee fa-2x fa-fw lunch-fa" ></i>{{item.L}}</div>
-<input class="form-control" type="text" ng-model="item.E" ng-change="changed()" ng-class="{'alarmed':item.ealarmed}"><i class="e-alarm aslink fa" ng-click="toggleAlarm('ealarm')" ng-show="item.E && maincontext.alarms" ng-class="{'fa-volume-off':!item.ealarm,'fa-volume-up':item.ealarm}"></i> /
-<input class="form-control" type="text" ng-model="item.U" ng-change="changed()" ng-class="{'alarmed':item.ualarmed}"><i class="u-alarm aslink fa" ng-click="toggleAlarm('ualarm')" ng-show="item.U && maincontext.alarms" ng-class="{'fa-volume-off':!item.ualarm,'fa-volume-up':item.ualarm}"></i>
+<input class="form-control" type="text" ng-model="item.E" ng-change="changed()" ng-class="{'alarmed':item.ealarmed}"><i class="e-alarm aslink fa" ng-click="toggleAlarm('ealarm')" ng-show="item.E && maincontext.options.alarms" ng-class="{'fa-volume-off':!item.ealarm,'fa-volume-up':item.ealarm}"></i> /
+<input class="form-control" type="text" ng-model="item.U" ng-change="changed()" ng-class="{'alarmed':item.ualarmed}"><i class="u-alarm aslink fa" ng-click="toggleAlarm('ualarm')" ng-show="item.U && maincontext.options.alarms" ng-class="{'fa-volume-off':!item.ualarm,'fa-volume-up':item.ualarm}"></i>
 {{item.minutes ? item.minutes : ''}}
