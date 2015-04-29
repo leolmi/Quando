@@ -22,9 +22,12 @@
   font-size: 10px;
 }
 .header > i {
-  position: absolute;
-  right: 8px;
-  top: 8px;
+  float: right;
+  display: inline-block;
+  margin: -10px -4px 0 18px;
+}
+.header > i:hover {
+  color: yellowgreen;
 }
 
 .work-hour {
@@ -171,7 +174,11 @@ tempi-item > input.alarmed {
   position: absolute;
   margin-left: 650px;
   width: 550px;
-  top: 0;
+  top: -1000px;
+  -moz-transition: all .50s ease-in-out;
+  -o-transition: all .50s ease-in-out;
+  -webkit-transition: all .50s ease-in-out;
+  transition: all .50s ease-in-out;
 }
 
 .q-help > h1 {
@@ -203,3 +210,21 @@ progress-clock {
   position: absolute;
   right: 50px;
 }
+
+.options {
+  width: calc(100% + 48px);
+  background-color: #333;
+  height: 100px;
+  color: yellowgreen;
+  margin: 0 -24px 15px;
+  -moz-transition: all .50s ease-in-out;
+  -o-transition: all .50s ease-in-out;
+  -webkit-transition: all .50s ease-in-out;
+  transition: all .50s ease-in-out;
+  overflow: hidden;
+}
+
+.option-values{
+  padding: 10px 30px;
+}
+

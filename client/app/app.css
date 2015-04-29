@@ -55,3 +55,10 @@
 .aslink {
   cursor: pointer;
 }
+
+.heightzero {
+  height: 0;
+  padding: 0;
+  margin: 0;
+}
+

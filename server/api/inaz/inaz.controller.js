@@ -8,6 +8,7 @@ var https = require('https');
 var config = require('../../config/environment');
 var querystring = require('querystring');
 var cheerio = require("cheerio");
+var fs = require('fs');
 
 var content_type_appwww = 'application/x-www-form-urlencoded';
 var user_agent_moz = 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko';
@@ -94,7 +95,7 @@ var doHttpsRequest = function(desc, options, data, target, cb) {
   });
 
   if (data) {
-    //console.log('['+desc+']-send data: '+data);
+    console.log('['+desc+']-send data: '+data);
     req.write(data);
   }
 
@@ -231,8 +232,8 @@ function chainOfRequests(options, sequence, i, cb) {
 }
 
 exports.data = function(req, res) {
-  var user = req.body;
-  if (!user || !user.password || !user.name)
+  var reqopt = req.body;
+  if (!reqopt || !reqopt.user || !reqopt.user.password || !reqopt.user.name)
     return handleError(res, err);
 
   var options = {
@@ -256,7 +257,7 @@ exports.data = function(req, res) {
 
     cookies = r1.headers['set-cookie'];
 
-    check(user, cookies, function(err, encpsw) {
+    check(reqopt.user, cookies, function(err, encpsw) {
       if (err)
         return handleError(res, err);
 
@@ -268,7 +269,7 @@ exports.data = function(req, res) {
         path:process.env.INAZ_PATH_DEFAULT,
         referer:process.env.INAZ_PATH_REFERER_LOGIN,
         data: {
-          IdLogin: user.name,
+          IdLogin: reqopt.user.name,
           IdPwdCript: encpsw,
           IdFrom: 'LOGIN',
           RetturnTo: process.env.INAZ_PATH_REFERER_LOGIN
@@ -338,19 +339,15 @@ exports.data = function(req, res) {
         if (err) return handleError(res, err);
 
         var table = parseInaz(c3);
-        var result;
-        if (user.all) {
-          result = table;
-        }
-        else {
-          var now = new Date();
-          var date = merge(now.getDate()) + '/' + merge((now.getMonth() + 1)) + '/' + now.getFullYear();
-          result = table.filter(function (r) {
-            return r['C1'] == date;
-          }).reverse();
-        }
-        //console.log('RISULTATI: ' + JSON.stringify(result));
-        return res.json(200, result);
+        var now = new Date();
+        reqopt.today = merge(now.getDate()) + '/' + merge((now.getMonth() + 1)) + '/' + now.getFullYear();
+
+        manageHistory(reqopt, table, function(result) {
+          if (!reqopt.all)
+            result.data = result.data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
+          //var result = reqopt.all ? data : data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
+          return res.json(200, result);
+        });
       });
     });
   });
@@ -370,4 +367,69 @@ function merge(v, tmpl) {
   if (diff>0)
     v = tmpl.slice(0,diff) + v;
   return v;
+}
+
+
+
+function manageHistory(opt, data, cb) {
+  //console.log('RISULTATI: ' + JSON.stringify(data));
+  cb = cb || noop;
+  var filename = './server/data/'+validateFileName(opt.user.name)+'.json';
+  // STRUTTURA DEI RISULTATI:
+  var results = {
+    data: data,
+    meta: []
+  };
+  // inserisce le peculiarità del giorno se esistono
+  if (opt.perm>0 || opt.work!=480)
+    results.meta.push({day:opt.today, perm:opt.perm, work:opt.work});
+
+  //apre il file degli storici dell'utente
+  fs.stat(filename, function(err, stats){
+    if (err) console.log("Errore in fase di recupero del file '"+filename+"': "+JSON.stringify(err));
+    if (!err && stats.isFile()) {
+      var content = fs.readFileSync(filename);
+      var savedresults = JSON.parse(content);
+      //mergia i risultati
+      if (savedresults) {
+        // mergia i dati
+        if (savedresults.data) {
+          // recupera tutti i record non censiti nell'ultima mungitura
+          var others = savedresults.data.filter(function (r) {
+            return !results.data.some(function (d) {
+              return d['C2'] == r['C2'];
+            });
+          })
+          Array.prototype.push.apply(results.data, others);
+        }
+        // mergia i meta
+        if (savedresults.meta) {
+          // recupera tutti i meta diversi da oggi
+          var others = savedresults.meta.filter(function (m) { return m.day!=opt.today; });
+          Array.prototype.push.apply(results.meta, others);
+        }
+      }
+    }
+    //salva il file degli storici
+    fs.writeFile(filename, JSON.stringify(results), function(err){
+      if (err) console.log("Errore in fase di salvataggio del file '"+filename+"': "+JSON.stringify(err));
+      //restituisce tutti i risultati
+      cb(results);
+    });
+  });
+
+
+
+
+
+
+}
+
+/**
+ * modifica tutti i caratteri diversi dalle lettere e numeri in underscore
+ * @param filename
+ * @returns {*}
+ */
+function validateFileName(filename){
+  return filename.replace(/[^0-9a-zA-Z]+/g, "_");
 }

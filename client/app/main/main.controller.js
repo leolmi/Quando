@@ -4,12 +4,15 @@
 'use strict';
 
 angular.module('Quando')
-  .controller('TempiCtrl', ['$scope','$http','$interval', function ($scope,$http,$interval) {
+  .controller('TempiCtrl', ['$scope','$http','$interval','Logger', function ($scope,$http,$interval,Logger) {
     var alarm = new Audio('assets/media/alarm.mp3');
     var alarmOwner;
     var _tick;
 
     $scope.helpon = false;
+    $scope.helpstyle = { top: '-700px' };
+    $scope.showopt = false;
+    $scope.optstyle = { height: 0 };
     $scope.progress = {
       forecolor:'yellowgreen',
       value:0,
@@ -17,13 +20,28 @@ angular.module('Quando')
       border:1
     };
     $scope.context = {
-      o:'8',
-      exit:'?',
+      o:'8',  //ore di lavora da contratto
+      p:'',   // permessi / malattie
+      exit:'?', // orario d'uscita
       items: [{
         E:'8:30',
         U:''
       }],
-      alarms:false,
+      options:{
+        alarms:false, //attiva gli allarmi
+        checknine: true,  //verifica l'ingresso dopo le 9:00
+        checklunch: true, //verifica la pausa pranzo
+        checkmine: true,  //verifica l'ingresso prima delle 8:30
+        canautomilk: false,  //offre la possibilità di attivare l'automilk
+        halfday: (4*60),
+        min_e: (8*60+30),
+        max_e: (9*60),
+        max_u: (23*60),
+        min_lunch: 30,
+        max_lunch: 90,
+        start_lunch:(12*60+30),
+        end_lunch:(14*60+30)
+      },
       debug:{}
     };
 
@@ -59,6 +77,16 @@ angular.module('Quando')
       return 0;
     }
 
+    $scope.toggleOptions = function() {
+      $scope.showopt = !$scope.showopt;
+      $scope.optstyle = { height: $scope.showopt ? "135px" : "0" }
+    };
+
+    $scope.toggleOptionValue = function(opt) {
+      $scope.context.options[opt] = !$scope.context.options[opt];
+      $scope.recalc();
+    };
+
     /**
      * C0 - numero
      * C1 - data (dd/MM/yyyy)
@@ -71,21 +99,27 @@ angular.module('Quando')
     function milkinaz(all) {
       if ($scope.milking) return;
       $scope.milking = true;
-      $scope.context.user.all = all;
-      $http.post('/api/inaz', $scope.context.user)
-        .success(function(data) {
-          if (data && data.length){
+      var reqopt = {
+        all: all,
+        user: $scope.context.user,
+        work: getMinutes($scope.context.o),
+        perm: getMinutes($scope.context.p)
+      };
+      $http.post('/api/inaz', reqopt)
+        .success(function(results) {
+          if (results && results.data.length){
             if (all) {
-              $scope.context.allitems = data;
+              $scope.context.allitems = results.data;
+              $scope.context.meta = results.meta;
               $scope.calcAllItems();
             }
             else {
               var items = [];
               var i = {};
-              data.forEach(function(r){ r.time = getMinutes(r['C2']+':'+r['C3']); });
-              data.sort(timeCompare);
+              results.data.forEach(function(r){ r.time = getMinutes(r['C2']+':'+r['C3']); });
+              results.data.sort(timeCompare);
 
-              data.forEach(function (r) {
+              results.data.forEach(function (r) {
                 if (r['C4'] == 'E') {
                   if (i.E) {
                     items.push(i);
@@ -112,7 +146,7 @@ angular.module('Quando')
         .error(function(err){
           $scope.milking = false;
           var msg = (err && !$.isEmptyObject(err)) ? JSON.stringify(err) : 'verificare le credenziali e riprovare.';
-          alert('ERRORE: '+msg);
+          //Logger.error('ERRORE richiesta portale INAZ', msg);
         });
     }
 
@@ -161,7 +195,7 @@ angular.module('Quando')
     }
 
     function isLunch(e, u) {
-      return (u>0 && e>0 && e>(12*60+30) && u<(14*60+30));
+      return (u>0 && e>0 && e>$scope.context.options.start_lunch && u<$scope.context.options.end_lunch);
     }
 
     function getTime(m) {
@@ -194,25 +228,29 @@ angular.module('Quando')
       var firstE = 0;
       var lastE = 0;
       var m1 = 0, m2 = 0;
+      // verifica che sia stata fatta la pausa pranzo
       var lunch = false;
-      var lunchable = true;
+      // la pausa pranzo viene valutata solo se le ore di permesso non sono
+      // uguali o superiori alla mezza giornata e l'opzione è attiva
+      var lunchable = (mPP<$scope.context.options.halfday) && $scope.context.options.checklunch;
       $scope.context.items.forEach(function(i){
         m1 = calcMinutes(i,'E');
         /// il minimo ingresso è alle 8:30
-        if (m1<(8*60+30))
-          m1 = (8*60+30);
+        if (m1<$scope.context.options.min_e && $scope.context.options.checkmine)
+          m1=$scope.context.options.min_e;
         /// la pausa pranzo va da un minimo di 30min ad un massimo di 90min
-        if (!lunch && isLunch(m1,m2)) {
+        if (!lunch && isLunch(m1,m2) && $scope.context.options.checklunch) {
           lunch = true;
           i.lunch = true;
           var p = m1 - m2;
-          if (p<30) { mP = 30 - p; p = 30; }
-          if (p>90) { mP = p - 90; p = 90; }
+          if (p<$scope.context.options.min_lunch) { mP = $scope.context.options.min_lunch - p; p = $scope.context.options.min_lunch; }
+          if (p>$scope.context.options.max_lunch) { mP = p - $scope.context.options.max_lunch; p = $scope.context.options.max_lunch; }
           i.L = getTime(p);
         }
         else i.lunch = false;
         m2 = calcMinutes(i,'U');
         lastok = (m2 > m1);
+        // se l'intervallo è valido aggiunge le ore di lavoro
         if (lastok) {
           var l = (m2 - m1);
           i.minutes = getTime(l);
@@ -224,15 +262,14 @@ angular.module('Quando')
           lastE = m1;
           if (firstE == 0) {
             firstE = m1;
-            /// l'ingresso dopo le 9:00 va scaglionato sulle mezz'ore
-            if (firstE>(9*60) && mPP<4){
-              var meT = firstE - (9*60);
+            // l'ingresso dopo le 9:00 va scaglionato sulle mezz'ore
+            // se non si è definito un permesso e l'opzione è attiva
+            if (firstE>$scope.context.options.max_e && mPP<=0 && $scope.context.options.checknine){
+              var meT = firstE - $scope.context.options.max_e;
               var meM = Math.floor(meT / 30);
               if (meM*30<meT) meM++;
               mE = meM*30-meT;
             }
-            if (mPP>=4)
-              lunchable = false;
           }
           if (m2>0)
             lastE = m2
@@ -241,10 +278,10 @@ angular.module('Quando')
       if (lastok)
         $scope.context.items.push({E:'',U:''});
       if (!lunch && lunchable)
-        mP = 30;
+        mP = $scope.context.options.min_lunch;
       var r = lastE+mT-mL+mP-mPP+mE;
 
-      if (r<=(8*60) || r>=(23*60)) r = 0;
+      if (r<=$scope.context.options.min_e || r>=$scope.context.options.max_u) r = 0;
 
       $scope.context.startm = firstE;
       $scope.context.exitm = r;
@@ -254,6 +291,7 @@ angular.module('Quando')
 
     $scope.clear = function() {
       var u = ($scope.context) ? $scope.context.user : {};
+      var opt = $scope.context.options;
       $scope.context = {
         user: u,
         o:'8',
@@ -263,8 +301,10 @@ angular.module('Quando')
           E:'8:30',
           U:''
         }],
+        options:opt,
         debug:{}
       };
+      $scope.recalc();
     };
 
     $scope.clear();
@@ -327,7 +367,7 @@ angular.module('Quando')
     }
 
     function watchTime() {
-      if (angular.isDefined(_tick) || !$scope.context.alarms) return;
+      if (angular.isDefined(_tick) || !$scope.context.options.alarms) return;
       _tick = $interval(function () {
         var nowm = getNowM();
         //verifica orario uscita
@@ -360,7 +400,7 @@ angular.module('Quando')
 
     $scope.alarm = function() {
       if (alarm.paused) {
-        if ($scope.context.alarms)
+        if ($scope.context.options.alarms)
           alarm.play();
         if (alarmOwner)
           alarmOwner.i[alarmOwner.p+'ed'] = true;
@@ -379,20 +419,21 @@ angular.module('Quando')
     };
 
     $scope.toggleAlarms = function() {
-      if ($scope.context.alarms){
-        $scope.context.alarms = false;
+      if ($scope.context.options.alarms){
+        $scope.context.options.alarms = false;
         stopWatchTime();
         if (!alarm.paused)
           $scope.alarm();
       }
       else {
-        $scope.context.alarms = true;
+        $scope.context.options.alarms = true;
         watchTime();
       }
     };
 
     $scope.help = function() {
       $scope.helpon = !$scope.helpon;
+      $scope.helpstyle = { top: $scope.helpon ? '10px' : '-700px' };
     };
 
     $interval(function () {
@@ -400,8 +441,7 @@ angular.module('Quando')
       var lm = $scope.context.exitm - $scope.context.startm;
       var rm = getNowM() - $scope.context.startm;
       var elps = $scope.context.exitm - nm;
-      var perc = (lm<=0 || rm<=0) ? 0 : Math.floor((rm * 100)/lm);
-      $scope.progress.value = perc;
+      $scope.progress.value = (lm<=0 || rm<=0) ? 0 : Math.floor((rm * 100)/lm);
       $scope.progress.elapsed = getTime(elps);
     },2000);
 

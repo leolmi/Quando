@@ -5,7 +5,8 @@ angular.module('Quando', [
   'ngResource',
   'ngSanitize',
   'ngRoute',
-  'ui.bootstrap'
+  'ui.bootstrap',
+  'toastr'
 ])
   .config(function ($routeProvider, $locationProvider, $httpProvider) {
     $routeProvider
