@@ -67,9 +67,20 @@
   <p>Storico</p>
   <line-chart ng-repeat="i in context.allDaysItems" ng-model="i"></line-chart>
 </div>
-<div class="analisys" ng-class="{'visible':context.allDaysItems.length && analisyson}">
-
-</div>
+<!--<div class="analisys" ng-class="{'visible':context.allDaysItems.length && analisyson}">-->
+  <!--<p>Analisi</p>-->
+  <!--<form class="form-horizontal">-->
+    <!--<div class="form-group">-->
+      <!--<label class="col-xs-6 control-label">Ore da fare / Permesso</label>-->
+      <!--<div class="col-xs-6">-->
+        <!--<input class="form-control work-hour" type="text" ng-model="context.o" ng-change="recalc()"-->
+               <!--title="Qui metti le ore che lavori"> /-->
+        <!--<input class="form-control work-hour permessi" type="text" ng-model="context.p" ng-change="recalc()"-->
+               <!--title="Qui metti le ore di permesso">-->
+      <!--</div>-->
+    <!--</div>-->
+    <!--</form>-->
+<!--</div>-->
 <div class="q-help" ng-style="helpstyle">
   <h1>{{instractions.title}}</h1>
   <div class="q-section" ng-repeat="s in instractions.sections">
