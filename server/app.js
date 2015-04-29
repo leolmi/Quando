@@ -6,9 +6,9 @@
 
 // LOAD LOCAL ENVIROMENT VARIABLES
 //////////////////////////////////////////////////
-var local = require('./config/local.env.js');
-for (var p in local)
-  process.env[p]=local[p];
+//var local = require('./config/local.env.js');
+//for (var p in local)
+//  process.env[p]=local[p];
 //////////////////////////////////////////////////
 
 
