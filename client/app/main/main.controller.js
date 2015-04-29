@@ -11,6 +11,7 @@ angular.module('Quando')
 
     $scope.helpon = false;
     $scope.helpstyle = { top: '-700px' };
+    $scope.analisyson = false;
     $scope.showopt = false;
     $scope.optstyle = { height: 0 };
     $scope.progress = {

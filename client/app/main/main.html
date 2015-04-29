@@ -67,6 +67,9 @@
   <p>Storico</p>
   <line-chart ng-repeat="i in context.allDaysItems" ng-model="i"></line-chart>
 </div>
+<div class="analisys" ng-class="{'visible':context.allDaysItems.length && analisyson}">
+
+</div>
 <div class="q-help" ng-style="helpstyle">
   <h1>{{instractions.title}}</h1>
   <div class="q-section" ng-repeat="s in instractions.sections">
