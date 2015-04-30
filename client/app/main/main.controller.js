@@ -4,7 +4,7 @@
 'use strict';
 
 angular.module('Quando')
-  .controller('TempiCtrl', ['$scope','$http','$interval','Logger', function ($scope,$http,$interval,Logger) {
+  .controller('TempiCtrl', ['$scope','$http','$interval','$window','Logger', function ($scope,$http,$interval,$window,Logger) {
     var alarm = new Audio('assets/media/alarm.mp3');
     var alarmOwner;
     var _tick;
@@ -228,10 +228,12 @@ angular.module('Quando')
      * @returns {string}
      */
     function getTime(m) {
+      var sign = (m<0) ? -1 : 1;
+      if (m<0) m = -m;
       var hT = Math.floor(m/60);
       var mT = m-(hT*60);
       if (mT.toString().length<2) mT='0'+mT;
-      return hT+':'+mT;
+      return (hT*sign)+':'+mT;
     }
 
     var days = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
@@ -634,6 +636,21 @@ angular.module('Quando')
       $scope.helpon = !$scope.helpon;
       $scope.helpstyle = { top: $scope.helpon ? '10px' : '-700px' };
     };
+
+    $scope.downloadHistory = function() {
+      var data = {
+        rows:$scope.context.allitems,
+        meta:$scope.context.meta
+      };
+      var content = JSON.stringify(data);
+      content = content.replace(/,"\$\$hashKey":"object:\d+"/g,'');
+      content = content.replace(/},{/g,'},\r\n{');
+      content = content.replace(/],"/g,'],\r\n"');
+      content = content.replace(/:\[{/g,':[\r\n{');
+      $window.open("data:text/csv;charset=utf-8," + encodeURIComponent(content));
+    };
+
+
 
     /**
      * Avvia la rappresentazione dell'orologio con un delay di 2 secondi

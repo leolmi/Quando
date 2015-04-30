@@ -1,4 +1,4 @@
-<div class="calcolator quando-container">
+<div class="calcolator quando-container visible">
   <div class="header">
     Oggi è {{getDate()}}
     <i class="fa fa-2x fa-trash aslink" ng-click="clear()"></i>
@@ -84,7 +84,10 @@
       <p>* Se positiva rappresenta le ore lavorate in più rispetto all'orario concordato.</p>
     </div>
   </div>
-  <p>Storico</p>
+  <div class="header">
+    <span class="header-title">Storico</span>
+    <i class="fa fa-2x fa-download aslink" ng-click="downloadHistory()"></i>
+  </div>
   <line-chart ng-repeat="i in context.allDaysItems" ng-model="i"></line-chart>
 </div>
 <div class="q-help" ng-style="helpstyle">

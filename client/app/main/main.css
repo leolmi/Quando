@@ -15,7 +15,7 @@
   font-size: 12px;
   text-transform: uppercase;
 }
-.quando-container:not(.visible) > p {
+.quando-container:not(.visible) > .header {
   display: none;
 }
 
@@ -44,6 +44,11 @@
 }
 .header > i:hover {
   color: yellowgreen;
+}
+
+.header-title {
+  font-size: 12px;
+  text-transform: uppercase;
 }
 
 .work-hour {

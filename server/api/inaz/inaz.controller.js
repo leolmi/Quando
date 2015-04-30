@@ -4,152 +4,14 @@
 'use strict';
 
 var _ = require('lodash');
-var https = require('https');
-var config = require('../../config/environment');
-var querystring = require('querystring');
 var cheerio = require("cheerio");
 var fs = require('fs');
+var u = require('../utilities/util');
+var w = require('../utilities/web');
 
 var content_type_appwww = 'application/x-www-form-urlencoded';
 var user_agent_moz = 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko';
 var content_accept_text = 'text/html, application/xhtml+xml, */*';
-
-
-function handleError(res, err) {
-  return res.send(500, err);
-}
-
-
-var getRedirectPath = function(pre, nxt) {
-  var pre_split = pre.split('/');
-  var nxt_split = nxt.split('/');
-
-  pre_split.pop();
-  nxt_split.forEach(function(e){
-    if (e=='..')
-      pre_split.pop();
-    else
-      pre_split.push(e);
-  });
-
-  return pre_split.join('/');
-};
-
-
-/**
- * Richiesta
- * @param desc
- * @param options
- * @param data
- * @param target
- * @param cb
- */
-var doHttpsRequest = function(desc, options, data, target, cb) {
-  var skipped = false;
-  var download = false;
-  cb = cb || noop;
-  console.log('['+desc+']-OPTIONS: ' + JSON.stringify(options));
-
-  var req = https.request(options, function(res) {
-    var result = {
-      code:res.statusCode,
-      headers:res.headers
-    };
-    //console.log('['+desc+']-RESULTS: ' + JSON.stringify(result));
-
-    var newpath = res.headers.location;
-    if (res.statusCode.toString()=='302' && newpath) {
-      skipped = true;
-      options.path = getRedirectPath(options.path ,newpath);
-      doHttpsRequest('redir - '+desc, options, null, null, cb);
-    }
-
-    if (target) {
-      download = true;
-      res.setEncoding('binary');
-      res.pipe(target);
-      target.on('finish', function() {
-        console.log('Finito di scrivere il file!');
-        target.close(cb(options,result, null));
-      });
-    }
-    else res.setEncoding('utf8');
-
-    var content = '';
-
-    res.on('data', function (chunk) {
-      //console.log('['+desc+']-download data: '+chunk);
-      content+=chunk;
-    });
-    res.on('end', function () {
-      //console.log('['+desc+']-Fine richiesta!   skipped='+skipped+'   download='+download+'  target='+(target ? 'si' : 'no'));
-      if (!skipped && !target && !download) {
-        options.headers = _.merge(options.headers, req.headers);
-        cb(options, result, content);
-      }
-    });
-  });
-
-  req.on('error', function(e) {
-    console.log('['+desc+']-problem with request: ' + e.message);
-  });
-
-  if (data) {
-    console.log('['+desc+']-send data: '+data);
-    req.write(data);
-  }
-
-  req.end();
-};
-
-function getCharEsa(cc, upper){
-  var h = cc.toString(16);
-  if (upper) h = h.toUpperCase();
-  if (h.length < 2)
-    h = "0" + h;
-  return h;
-}
-
-function isLitteral(cc) {
-  return (cc>=65 && cc<=90) || (cc>=97 && cc<=122);
-}
-
-function encodeToEsa(s, pswmode) {
-  var res = '';
-  for (var i = 0,n = s.length; i<n; i++) {
-    if (pswmode) {
-      if (isLitteral(s.charCodeAt(i)))
-        res += s[i];
-      else {
-        res += '%'+getCharEsa(s.charCodeAt(i), true);
-      }
-    }
-    else {
-      res += getCharEsa(s.charCodeAt(i));
-    }
-  }
-  return res;
-}
-
-function decodeFromEsa(s) {
-  var res = '';
-  for (var i = 0, n = s.length; i<n; i += 2) {
-    res += String.fromCharCode("0x" + s.substring(i, i + 2));
-  }
-  return res;
-}
-
-function getData(o, encode) {
-  if (encode) {
-    var eo = {}
-    for (var p in o)
-      eo[p] = encodeToEsa(o[p]);
-    return querystring.stringify(eo);
-  }
-  else{
-    return querystring.stringify(o);
-  }
-}
 
 
 function check(user, cookies, cb) {
@@ -160,7 +22,7 @@ function check(user, cookies, cb) {
     IdPwd:user.password,
     ServerLDAP:process.env.INAZ_SERVER_LDAP
   };
-  var str_data = getData(data,true);
+  var str_data = w.getData(data,true);
 
   var options = {
     host: process.env.INAZ_HOST,
@@ -175,12 +37,12 @@ function check(user, cookies, cb) {
     }
   };
 
-  doHttpsRequest('check', options, str_data, undefined, function(o, r, c) {
+  w.doHttpsRequest('check', options, str_data, undefined, function(o, r, c) {
     if (r.code!=200)
       return cb(new Error('[check] - terminato con codice: '+r.code));
     if (!c || c.indexOf("[$OK$]:") != 0)
       return cb(new Error('Verifica password fallita: '+c));
-    var encpsw = decodeFromEsa(c.substring(7));
+    var encpsw = u.decodeFromEsa(c.substring(7));
     return cb(null, encpsw);
   });
 }
@@ -198,43 +60,18 @@ function parseInaz(html) {
   return table;
 }
 
-/**
- * Effettua una catena di chiamate sequenziali
- * @param options
- * @param sequence
- * @param i
- * @param cb
- */
-function chainOfRequests(options, sequence, i, cb) {
-  if (sequence[i].method) options.method = sequence[i].method;
-  if (sequence[i].path) options.path = sequence[i].path;
-  if (sequence[i].referer) options.headers.referer = sequence[i].referer;
-
-  var data_str = undefined;
-  if (sequence[i].data_str)
-    data_str = sequence[i].data_str;
-  else if (sequence[i].data)
-    data_str = getData(sequence[i].data);
-
-  options.headers['content-length'] = data_str ? data_str.length : 0;
-
-  //console.log('['+sequence[i].title+']-REQUEST BODY: '+data_str);
-  doHttpsRequest(sequence[i].title, options, data_str, undefined, function(o, r, c) {
-    if (r.code!=200)
-      return cb(new Error('['+sequence[i].title+'] - terminata con codice: '+r.code));
-    //console.log('['+(i+1)+' '+sequence[i].title+'] - RICHIESTA EFFETTUATA CON SUCCESSO, CONTENT: '+c);
-
-    if (i>=sequence.length-1)
-      return cb(null, c);
-
-    chainOfRequests(options, sequence, i + 1, cb);
-  });
+function checkReqOpt(req) {
+  var reqopt = req.body;
+  if (reqopt) {
+    var now = new Date();
+    reqopt.today = merge(now.getDate()) + '/' + merge((now.getMonth() + 1)) + '/' + now.getFullYear();
+  }
+  return (!reqopt || !reqopt.user || !reqopt.user.password || !reqopt.user.name) ? undefined : reqopt;
 }
 
 exports.data = function(req, res) {
-  var reqopt = req.body;
-  if (!reqopt || !reqopt.user || !reqopt.user.password || !reqopt.user.name)
-    return handleError(res, err);
+  var reqopt = checkReqOpt(req);
+  if (!reqopt) return w.error(res, new Error('Utente non definito correttamente!'));
 
   var options = {
     host: process.env.INAZ_HOST,
@@ -251,15 +88,15 @@ exports.data = function(req, res) {
   };
 
   var cookies = {};
-  doHttpsRequest('accesso', options, undefined, undefined, function(o1, r1, c1) {
+  w.doHttpsRequest('accesso', options, undefined, undefined, function(o1, r1, c1) {
     if (r1.code!=200)
-      return handleError(res, new Error('[accesso] - terminata con codice: '+r1.code));
+      return w.error(res, new Error('[accesso] - terminata con codice: '+r1.code));
 
     cookies = r1.headers['set-cookie'];
 
     check(reqopt.user, cookies, function(err, encpsw) {
       if (err)
-        return handleError(res, err);
+        return w.error(res, err);
 
       o1.headers.cookie = cookies;
 
@@ -335,18 +172,16 @@ exports.data = function(req, res) {
         }
       }];
 
-      chainOfRequests(o1, sequence, 0, function(err, c3){
-        if (err) return handleError(res, err);
+      w.chainOfRequests(o1, sequence, 0, function(err, c3){
+        if (err) return w.error(res, err);
 
         var table = parseInaz(c3);
-        var now = new Date();
-        reqopt.today = merge(now.getDate()) + '/' + merge((now.getMonth() + 1)) + '/' + now.getFullYear();
 
         manageHistory(reqopt, table, function(result) {
           if (!reqopt.all)
             result.data = result.data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
           //var result = reqopt.all ? data : data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
-          return res.json(200, result);
+          return w.ok(res, result);
         });
       });
     });
@@ -373,7 +208,7 @@ function merge(v, tmpl) {
 function manageHistory(opt, data, cb) {
   //console.log('RISULTATI: ' + JSON.stringify(data));
   cb = cb || noop;
-  var filename = './server/data/'+validateFileName(opt.user.name)+'.json';
+  var filename = './server/data/'+ u.validateFileName(opt.user.name)+'.json';
   // STRUTTURA DEI RISULTATI:
   var results = {
     data: data,
@@ -418,11 +253,6 @@ function manageHistory(opt, data, cb) {
   });
 }
 
-/**
- * modifica tutti i caratteri diversi dalle lettere e numeri in underscore
- * @param filename
- * @returns {*}
- */
-function validateFileName(filename){
-  return filename.replace(/[^0-9a-zA-Z]+/g, "_");
-}
+exports.upload = function(req, res) {
+  console.log('Richiesta di upload...');
+};
