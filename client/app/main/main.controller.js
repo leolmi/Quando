@@ -72,6 +72,12 @@ angular.module('Quando')
       }]
     };
 
+    /**
+     * Compara i tempi
+     * @param r1
+     * @param r2
+     * @returns {number}
+     */
     function timeCompare(r1, r2) {
       if (r1.time > r2.time) return 1;
       if (r1.time < r2.time) return -1;
@@ -89,6 +95,7 @@ angular.module('Quando')
     };
 
     /**
+     * Avvia la mungitura di inaz
      * C0 - numero
      * C1 - data (dd/MM/yyyy)
      * C2 - ora
@@ -165,6 +172,10 @@ angular.module('Quando')
     $scope.$on('$destroy', function() {
       $scope.stop();
     });
+
+    /**
+     * Verifica lo stato dell'automungitura
+     */
     function checkAutoMilk() {
       if ($scope.context.user.auto && !automilk)
         $scope.start();
@@ -179,6 +190,11 @@ angular.module('Quando')
       return rv;
     }
 
+    /**
+     * Restituisce il numero di minuti dell'orario
+     * @param {string} t
+     * @returns {number}
+     */
     function getMinutes(t) {
       if (!t) return 0;
       var pattern = /\d+/g;
@@ -195,10 +211,22 @@ angular.module('Quando')
       return mt;
     }
 
+    /**
+     * Determina se l'intervallo entrata - uscita è interpretabile come la pausa pranzo
+     * @param e
+     * @param u
+     * @returns {boolean}
+     */
     function isLunch(e, u) {
       return (u>0 && e>0 && e>$scope.context.options.start_lunch && u<$scope.context.options.end_lunch);
     }
 
+    /**
+     * Restituisce il valore numerico (minuti) in formato time:
+     * 500 ->  8:20
+     * @param {Number} m
+     * @returns {string}
+     */
     function getTime(m) {
       var hT = Math.floor(m/60);
       var mT = m-(hT*60);
@@ -208,6 +236,13 @@ angular.module('Quando')
 
     var days = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
     var months = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+    /**
+     * Restituisce la data nei formati:
+     * se small:    '24/10/2012'
+     * altrimenti:  'martedì 24 ottobre 2012'
+     * @param {boolean} small
+     * @returns {string}
+     */
     $scope.getDate  = function(small) {
       var date = new Date();
       if (small)
@@ -215,12 +250,21 @@ angular.module('Quando')
       return days[date.getDay()-1]+' '+date.getDate()+' '+months[date.getMonth()]+' '+date.getFullYear();
     };
 
+    /**
+     * Restituisce il numero di minuti dell'orario
+     * @param i
+     * @param type
+     * @returns {*}
+     */
     function calcMinutes(i, type) {
       var m = getMinutes(i[type]);
       i[type+'M']=m;
       return m;
     }
 
+    /**
+     * Ricalcola l'orario d'uscita
+     */
     $scope.recalc = function(){
       var mP = 0;
       var mE = 0;
@@ -292,6 +336,10 @@ angular.module('Quando')
       watchTime();
     };
 
+    /**
+     * Resetta tutti gli orari inseriti
+     * (preserva le opzioni e le credenziali)
+     */
     $scope.clear = function() {
       var u = ($scope.context) ? $scope.context.user : {};
       var opt = $scope.context.options;
@@ -315,11 +363,17 @@ angular.module('Quando')
       $scope.recalc();
     };
 
+    /**
+     * Attiva o spenge l'automungitura
+     */
     $scope.toggleAutoInaz = function() {
       $scope.context.user.auto = !$scope.context.user.auto;
       checkAutoMilk();
     };
 
+    /**
+     * Avvia o chiude il processo di mungitura di tutte le rilevazioni
+     */
     $scope.inazall = function() {
       if ($scope.context.allDaysItems && $scope.context.allDaysItems.length)
         $scope.context.allDaysItems = [];
@@ -327,6 +381,9 @@ angular.module('Quando')
         milkinaz(true);
     };
 
+    /**
+     * Se le credenziali sono valorizzate avvia il processo di mngitura
+     */
     $scope.inaz = function() {
       if (!$scope.context.user.name || !$scope.context.user.password || $scope.context.user.auto)
         return;
@@ -339,19 +396,115 @@ angular.module('Quando')
         $scope.recalcAnal();
     };
 
+    /**
+     * Mergia due stringhe:
+     * esempio: '3'  tmpl='00'  -> '03'
+     * @param {string} v
+     * @param {string} [tmpl]
+     * @returns {string}
+     */
+    function merge(v, tmpl) {
+      tmpl = tmpl || '00';
+      if (v.length<tmpl.length)
+        v = tmpl.substr(0, tmpl.length-v.length)+v;
+      return v;
+    }
+
+    /**
+     * Decifra la stringa che rappresenta la data
+     * @param {string} str
+     * @returns {number}
+     */
+    function parseDate(str) {
+      var pattern = /(\d{1,2})\/(\d{1,2})\/(\d{4})/g;
+      if (!str || str.length > 10 || str.length<8) return 0;
+      var m = pattern.exec(str);
+      if (!m) return 0;
+      return parseInt(m[3]+merge(m[2])+merge(m[1]));
+    }
+
+    /**
+     * Calcola l'intervallo richiesto per il calcolo dei dati
+     * @param interval
+     * @returns {boolean}
+     */
+    function getInterval(interval){
+      interval.da = parseDate($scope.context.analisys.da);
+      interval.a = parseDate($scope.context.analisys.a);
+      return interval.da > 0 && interval.a > 0;
+    }
+
+    /**
+     * Calcola le ore lavorate
+     * @param {[object]} items
+     * @returns {number}
+     */
+    function calcWork(items){
+      var result = 0;
+      var e = 0;
+      items.forEach(function(i){
+        if (e>0) { result += (i.time-e); e=0; }
+        else e = i.time;
+      });
+      return result;
+    }
+
+    /**
+     * Struttura classe item [i]:
+     *    i.day = '01/01/2010'
+     *    i.items = [{time:491},{time:780},...]
+     *
+     */
     $scope.recalcAnal = function() {
-      if (!$scope.context.allitems || $scope.context.allitems.length<=0) return;
+      if (!$scope.context.allDaysItems || $scope.context.allDaysItems.length<=0) return;
+      var interval = {da:0,a:0};
+      if (!getInterval(interval)) return;
+      var res ={ days:0, work:0, done:0, perm:0 };
 
+      //Calcolo dei valori...
+      $scope.context.allDaysItems.forEach(function(i){
+        if (i.dayn>=interval.da && i.dayn<=interval.a){
+          var done = calcWork(i.items);
+          if (done>0) {
+            res.days++;
+            res.work += i.work || (8 * 60);
+            res.done += done;
+            res.perm += i.perm || 0;
+          }
+        }
+      });
 
-
-      var res = [
-          { name: "Totale ore da lavorare", value:"?" },
-          { name: "Totale ore lavorate", value:"?" },
-          { name: "Permessi", value:"?" },
-          { name: "Differenza", value:"?" }]
-
-      $scope.context.analisys.results = res;
+      $scope.context.analisys.results = [
+        { name: "Giorni considerati", value:res.days },
+        { name: "Totale ore da lavorare", value:getTime(res.work) },
+        { name: "Totale ore lavorate", value:getTime(res.done) },
+        { name: "Permessi", value:getTime(res.perm) },
+        { name: "Differenza*", value:getTime(res.done - res.work + res.perm) }];
     };
+
+    /**
+     * Aggiunge un nuovo elemento all'elenco delle informazioni giornaliere
+     * @param {[object]} daysItems
+     * @param {string} day
+     * @param {[object]} items
+     */
+    function addItems(daysItems,day,items) {
+      if (items.length<=0) return;
+      var dayitem = {
+        day: day,
+        dayn:parseDate(day),
+        items: items.sort(timeCompare)
+      };
+      //aggiunge i meta del giorno
+      if ($scope.context.meta.length>0) {
+        var meta = $.grep($scope.context.meta, function(m){ return m.day==day; });
+        if (meta) {
+          if (m.perm>0) dayitem.perm = m.perm;
+          if (m.work!=(8*60)) dayitem.work = m.work;
+        }
+      }
+      daysItems.push(dayitem);
+    }
 
     /**
      * C0 - numero
@@ -360,38 +513,46 @@ angular.module('Quando')
      * C3 - minuti
      * C4 - tipo (E o U)
      */
-    function addItems(daysItems,day,dayItems) {
-      if (dayItems.length)
-        daysItems.push({day: day, items: dayItems.sort(timeCompare)});
-    }
-
     $scope.calcAllItems = function() {
       if (!$scope.context.allitems || $scope.context.allitems.length<=0) return;
-      var dayItems = [], daysItems = [];
+      var items = [], daysItems = [];
       var day = '';
       $scope.context.allitems.forEach(function(i){
         if (day != i['C1']){
-          addItems(daysItems,day,dayItems);
-          day = i['C1']; dayItems = [];
+          addItems(daysItems,day,items);
+          day = i['C1']; items = [];
         }
         i.time = getMinutes(i['C2']+':'+i['C3']);
-        dayItems.push(i);
+        items.push(i);
       });
-      addItems(daysItems,day,dayItems);
+      addItems(daysItems,day,items);
       $scope.context.allDaysItems = daysItems;
     };
 
+    /**
+     * Restituisce i minuti dell'ora corrente
+     * @returns {number}
+     */
     function getNowM() {
       var now = new Date();
       return now.getHours() * 60 + now.getMinutes();
     }
 
+    /**
+     * attiva l'allarme per l'item
+     * @param item
+     * @param property
+     * @returns {boolean}
+     */
     function activateItemAlarm(item, property) {
       alarmOwner={i:item,p:property};
       $scope.alarm();
       return true;
     }
 
+    /**
+     * Avvia la procedura di verifica degli orari ogni 10 secondi
+     */
     function watchTime() {
       if (angular.isDefined(_tick) || !$scope.context.options.alarms) return;
       _tick = $interval(function () {
@@ -416,6 +577,9 @@ angular.module('Quando')
       }, 10000);
     }
 
+    /**
+     * Ferma la procedura di verifica degli orari ogni 10 secondi
+     */
     function stopWatchTime() {
       if (angular.isDefined(_tick)) {
         $interval.cancel(_tick);
@@ -424,6 +588,9 @@ angular.module('Quando')
       $scope.alarmed = false;
     }
 
+    /**
+     * suona l'allarme se spento o lo zittisce se acceso
+     */
     $scope.alarm = function() {
       if (alarm.paused) {
         if ($scope.context.options.alarms)
@@ -444,6 +611,9 @@ angular.module('Quando')
       $scope.isalarm =!alarm.paused;
     };
 
+    /**
+     * Attiva o disattiva l'opzione degli allarmi
+     */
     $scope.toggleAlarms = function() {
       if ($scope.context.options.alarms){
         $scope.context.options.alarms = false;
@@ -457,11 +627,17 @@ angular.module('Quando')
       }
     };
 
+    /**
+     * Attiva o disattiva l'help
+     */
     $scope.help = function() {
       $scope.helpon = !$scope.helpon;
       $scope.helpstyle = { top: $scope.helpon ? '10px' : '-700px' };
     };
 
+    /**
+     * Avvia la rappresentazione dell'orologio con un delay di 2 secondi
+     */
     $interval(function () {
       var nm = getNowM();
       var lm = $scope.context.exitm - $scope.context.startm;
@@ -471,5 +647,8 @@ angular.module('Quando')
       $scope.progress.elapsed = getTime(elps);
     },2000);
 
+    /**
+     * Inizializza le opzioni
+     */
     $scope.clear();
   }]);

@@ -7,10 +7,10 @@
   <!--ng-class="{'heightzero':!showopt}"-->
   <div class="options" ng-style="optstyle">
     <div class="option-values">
-      <p><i class="fa fa-fw aslink" ng-class="{'fa-toggle-off':!context.options.checkmine, 'fa-toggle-on':context.options.checkmine}" ng-click="toggleOptionValue('checkmine')"></i> Verifica ingresso minimo</p>
-      <p><i class="fa fa-fw aslink" ng-class="{'fa-toggle-off':!context.options.checknine, 'fa-toggle-on':context.options.checknine}" ng-click="toggleOptionValue('checknine')"></i> Verifica sforamento dell'ora d'ingresso</p>
-      <p><i class="fa fa-fw aslink" ng-class="{'fa-toggle-off':!context.options.checklunch, 'fa-toggle-on':context.options.checklunch}" ng-click="toggleOptionValue('checklunch')"></i> Verifica pausa pranzo</p>
-      <p><i class="fa fa-fw aslink" ng-class="{'fa-toggle-off':!context.options.canautomilk, 'fa-toggle-on':context.options.canautomilk}" ng-click="toggleOptionValue('canautomilk')"></i> Offre la possibilità di attivare l'automungitura</p>
+      <p ng-class="{'checked':context.options.checkmine}"><i class="fa fa-fw aslink" ng-class="{'fa-toggle-off':!context.options.checkmine, 'fa-toggle-on':context.options.checkmine}" ng-click="toggleOptionValue('checkmine')"></i> Verifica ingresso minimo</p>
+      <p ng-class="{'checked':context.options.checknine}"><i class="fa fa-fw aslink" ng-class="{'fa-toggle-off':!context.options.checknine, 'fa-toggle-on':context.options.checknine}" ng-click="toggleOptionValue('checknine')"></i> Verifica sforamento dell'ora d'ingresso</p>
+      <p ng-class="{'checked':context.options.checklunch}"><i class="fa fa-fw aslink" ng-class="{'fa-toggle-off':!context.options.checklunch, 'fa-toggle-on':context.options.checklunch}" ng-click="toggleOptionValue('checklunch')"></i> Verifica pausa pranzo</p>
+      <p ng-class="{'checked':context.options.canautomilk}"><i class="fa fa-fw aslink" ng-class="{'fa-toggle-off':!context.options.canautomilk, 'fa-toggle-on':context.options.canautomilk}" ng-click="toggleOptionValue('canautomilk')"></i> Offre la possibilità di attivare l'automungitura</p>
     </div>
   </div>
   <form class="form-horizontal">
@@ -81,6 +81,7 @@
         <dt ng-repeat-start="res in context.analisys.results">{{res.name}}</dt>
         <dd ng-repeat-end>{{res.value}}</dd>
       </dl>
+      <p>* Se positiva rappresenta le ore lavorate in più rispetto all'orario concordato.</p>
     </div>
   </div>
   <p>Storico</p>

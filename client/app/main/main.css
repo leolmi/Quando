@@ -15,6 +15,10 @@
   font-size: 12px;
   text-transform: uppercase;
 }
+.quando-container:not(.visible) > p {
+  display: none;
+}
+
 
 .calcolator {
   position: relative;
@@ -144,6 +148,7 @@ tempi-item > input.alarmed {
   padding: 0 24px;
   height: 0;
   z-index: 10;
+  overflow: inherit;
 }
 .allitems-charts.visible {
   padding: 24px;
@@ -219,7 +224,7 @@ progress-clock {
   width: calc(100% + 48px);
   background-color: #333;
   height: 100px;
-  color: yellowgreen;
+  color: #999;
   margin: 0 -24px 15px;
   -moz-transition: all .50s ease-in-out;
   -o-transition: all .50s ease-in-out;
@@ -232,10 +237,15 @@ progress-clock {
   padding: 10px 30px;
 }
 
+.option-values > p.checked {
+  color: yellowgreen;
+}
+
+
 .analisys {
-  position: fixed;
+  position: absolute;
   width: 500px;
-  margin-top: -74px;
+  margin-top: -24px;
   z-index: 8;
   display: none;
   -moz-transition: all .50s ease-in-out;
@@ -252,8 +262,16 @@ progress-clock {
   display: block;
 }
 
+.analisys dd {
+  color: yellowgreen;
+}
+
+.analisys-results > p {
+  color: #777;
+}
+
 .details-analisys{
-  visibility: hidden;   /*<< INVISIBILE*/
+  /*visibility: hidden;   *//*<< INVISIBILE*/
   position: relative;
   top: 50px;
   width: 62px;
