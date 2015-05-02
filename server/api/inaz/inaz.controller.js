@@ -231,16 +231,16 @@ function manageHistory(opt, data, cb) {
           // recupera tutti i record non censiti nell'ultima mungitura
           var others = savedresults.data.filter(function (r) {
             return !results.data.some(function (d) {
-              return d['C2'] == r['C2'];
+              return d['C1'] == r['C1'];
             });
-          })
-          Array.prototype.push.apply(results.data, others);
+          });
+          results.data = results.data.concat(others);
         }
         // mergia i meta
         if (savedresults.meta) {
           // recupera tutti i meta diversi da oggi
           var others = savedresults.meta.filter(function (m) { return m.day!=opt.today; });
-          Array.prototype.push.apply(results.meta, others);
+          results.meta = results.meta.concat(others);
         }
       }
     }
