@@ -34,7 +34,7 @@
       <div class="col-xs-6">
         <div class="form-control result transition" ng-class="{'alarmed':alarmed}">{{context.exit}}</div>
         <i class="fa fa-2x fa-volume-up alarm aslink" ng-show="isalarm" ng-click="alarm()"></i>
-        <progress-clock ng-show="progress && progress.value && context.exitm" ng-model="progress" title="mancano {{progress.elapsed}}" ng-click="test()"></progress-clock>
+        <progress-clock ng-show="progress && progress.value && context.exitm" ng-model="progress" title="mancano {{progress.elapsed}}"></progress-clock>
       </div>
     </div>
     <div class="form-group">
