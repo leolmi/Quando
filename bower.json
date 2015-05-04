@@ -15,7 +15,8 @@
     "angular-bootstrap": "~0.11.0",
     "angular-toastr": "~0.5.2",
     "font-awesome": ">=4.1.0",
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "file-saver": "*"
   },
   "devDependencies": {
     "angular-mocks": ">=1.2.*",

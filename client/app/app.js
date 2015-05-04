@@ -8,10 +8,11 @@ angular.module('Quando', [
   'ui.bootstrap',
   'toastr'
 ])
-  .config(function ($routeProvider, $locationProvider, $httpProvider) {
+  .config(function ($routeProvider, $locationProvider, $compileProvider) {
     $routeProvider
       .otherwise({
         redirectTo: '/'
       });
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|tel|file|blob):/);
     $locationProvider.html5Mode(true);
   });

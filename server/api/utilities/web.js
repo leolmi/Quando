@@ -11,7 +11,7 @@ var querystring = require('querystring');
 /**
  * Return standard 200
  * @param res
- * @param obj
+ * @param [obj]
  * @returns {*}
  */
 var ok = function(res, obj) {return res.json(200, obj);};
@@ -20,7 +20,7 @@ exports.ok = ok;
 /**
  * Return standard 201
  * @param res
- * @param obj
+ * @param [obj]
  * @returns {*}
  */
 var created = function(res, obj) {return res.json(201, obj);};

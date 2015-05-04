@@ -59,13 +59,13 @@ function parseInaz(html) {
   });
   return table;
 }
-
+function getToday() {
+  var now = new Date();
+  return u.merge(now.getDate()) + '/' + u.merge((now.getMonth() + 1)) + '/' + now.getFullYear();
+}
 function checkReqOpt(req) {
   var reqopt = req.body;
-  if (reqopt) {
-    var now = new Date();
-    reqopt.today = merge(now.getDate()) + '/' + merge((now.getMonth() + 1)) + '/' + now.getFullYear();
-  }
+  if (reqopt) reqopt.today = getToday();
   return (!reqopt || !reqopt.user || !reqopt.user.password || !reqopt.user.name) ? undefined : reqopt;
 }
 
@@ -88,15 +88,14 @@ exports.data = function(req, res) {
   };
 
   var cookies = {};
-  w.doHttpsRequest('accesso', options, undefined, undefined, function(o1, r1, c1) {
+  w.doHttpsRequest('accesso', options, undefined, undefined, function(o1, r1) {
     if (r1.code!=200)
       return w.error(res, new Error('[accesso] - terminata con codice: '+r1.code));
 
     cookies = r1.headers['set-cookie'];
 
     check(reqopt.user, cookies, function(err, encpsw) {
-      if (err)
-        return w.error(res, err);
+      if (err) return w.error(res, err);
 
       o1.headers.cookie = cookies;
 
@@ -177,8 +176,8 @@ exports.data = function(req, res) {
 
         var table = parseInaz(c3);
 
-        manageHistory(reqopt, table, function(result) {
-          if (!reqopt.all)
+        manageHistory(reqopt, table, function(err, result) {
+          if (!err && !reqopt.all)
             result.data = result.data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
           //var result = reqopt.all ? data : data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
           return w.ok(res, result);
@@ -195,20 +194,10 @@ function paramsReplace(voice) {
   return voice;
 }
 
-function merge(v, tmpl) {
-  tmpl = tmpl || '00';
-  v = ''+v;
-  var diff = tmpl.length-v.length;
-  if (diff>0)
-    v = tmpl.slice(0,diff) + v;
-  return v;
-}
 
 
 function manageHistory(opt, data, cb) {
   //console.log('RISULTATI: ' + JSON.stringify(data));
-  cb = cb || noop;
-  var filename = './server/data/'+ u.validateFileName(opt.user.name)+'.json';
   // STRUTTURA DEI RISULTATI:
   var results = {
     data: data,
@@ -218,41 +207,122 @@ function manageHistory(opt, data, cb) {
   if (opt.perm>0 || opt.work!=480)
     results.meta.push({day:opt.today, perm:opt.perm, work:opt.work});
 
+  mergeHistory(opt.user, results, opt.today, cb);
+}
+
+function getUserFileName(user) {
+  return './server/data/'+ u.validateFileName(user.name)+'.json';
+}
+
+/**
+ * Restituisce un valore numerico univoco per l'item
+ * @param d
+ * @returns {Number}
+ */
+function getDataN(d){
+  return parseInt(d['C1'].substr(6,4)+d['C1'].substr(3,2)+d['C1'].substr(0,2)+ u.merge(d['C2'])+u.merge(d['C3']));
+}
+
+function replaceHistory(user, history, cb) {
+  cb = cb || noop;
+  var filename = getUserFileName(user);
+
+  history.data.sort(function(d1,d2){
+    return getDataN(d2) - getDataN(d1);
+  });
+
+  //salva il file degli storici
+  fs.writeFile(filename, JSON.stringify(history), function(err){
+    if (err) return cb(new Error("Errore in fase di salvataggio del file degli storici"));
+    cb(null, history);
+  });
+}
+
+function mergeHistory(user, history, today, cb) {
+  cb = cb || noop;
+  var filename = getUserFileName(user);
+
   //apre il file degli storici dell'utente
   fs.stat(filename, function(err, stats){
-    if (err) console.log("Errore in fase di recupero del file '"+filename+"': "+JSON.stringify(err));
+    if (err) return cb(new Error("Errore in fase di recupero del file degli storici"));
+    //console.log("Errore in fase di recupero del file '"+filename+"': "+JSON.stringify(err));
     if (!err && stats.isFile()) {
       var content = fs.readFileSync(filename);
-      var savedresults = JSON.parse(content);
+      var exhistory = JSON.parse(content);
       //mergia i risultati
-      if (savedresults) {
+      if (exhistory) {
         // mergia i dati
-        if (savedresults.data) {
+        if (exhistory.data) {
           // recupera tutti i record non censiti nell'ultima mungitura
-          var others = savedresults.data.filter(function (r) {
-            return !results.data.some(function (d) {
+          var others_data = exhistory.data.filter(function (r) {
+            return !history.data.some(function (d) {
               return d['C1'] == r['C1'];
             });
           });
-          results.data = results.data.concat(others);
+          history.data = history.data.concat(others_data);
         }
         // mergia i meta
-        if (savedresults.meta) {
+        if (exhistory.meta) {
           // recupera tutti i meta diversi da oggi
-          var others = savedresults.meta.filter(function (m) { return m.day!=opt.today; });
-          results.meta = results.meta.concat(others);
+          var others_meta = exhistory.meta.filter(function (m) { return m.day!=today; });
+          history.meta = history.meta.concat(others_meta);
         }
       }
     }
     //salva il file degli storici
-    fs.writeFile(filename, JSON.stringify(results), function(err){
-      if (err) console.log("Errore in fase di salvataggio del file '"+filename+"': "+JSON.stringify(err));
-      //restituisce tutti i risultati
-      cb(results);
-    });
+    replaceHistory(user, history, cb);
   });
 }
 
+
+exports.download = function(req, res) {
+  var reqopt = checkReqOpt(req);
+  console.log('opzioni: '+JSON.stringify(reqopt));
+  if (!reqopt) return w.error(res, new Error('Utente non definito correttamente!'));
+  check(reqopt.user, null, function(err) {
+    if (err) return w.error(res, err);
+    var filename = getUserFileName(reqopt.user);
+    console.log('filename: '+filename);
+    fs.stat(filename, function(err, stats) {
+      if (err) console.log("Errore in fase di recupero del file '"+filename+"': "+JSON.stringify(err));
+      if (!err && stats.isFile()) {
+        var content = fs.readFileSync(filename);
+        var history = JSON.parse(content);
+        w.ok(res, history);
+      }
+    });
+  })
+};
+
 exports.upload = function(req, res) {
-  console.log('Richiesta di upload...');
+  var reqopt = checkReqOpt(req);
+  if (!reqopt) return w.error(res, new Error('Utente non definito correttamente!'));
+  check(reqopt.user, null, function(err) {
+    if (err) return w.error(res, err);
+    if (!reqopt.history || reqopt.history.length <= 0) return w.error(res, new Error('Storico non definito!'));
+    var history = {};
+    try {
+      history = JSON.parse(reqopt.history);
+    } catch (err) {
+      return w.error(res, err);
+    }
+    if (!history || (!history.data && !history.meta))
+      return w.error(res, new Error('Storico senza contenuti!'));
+    var dataempty = (!history.data || history.data.length <= 0);
+    var metaempty = (!history.meta || history.meta.length <= 0);
+    if (dataempty && metaempty)
+      return w.error(res, new Error('Storico senza valori significativi!'));
+
+    if (!history.replace) {
+      mergeHistory(reqopt.user, history, reqopt.today, function (err) {
+        if (err) return w.error(res, err);
+        return w.ok(res);
+      });
+    } else {
+      replaceHistory(reqopt.user, history, function (err) {
+        if (err) return w.error(res, err);
+        return w.ok(res);
+      });
+    }
+  });
 };

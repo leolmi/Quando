@@ -32,6 +32,15 @@ exports.uuid = function(template) {
   return id;
 };
 
+exports.merge = function(v, tmpl) {
+  tmpl = tmpl || '00';
+  v = ''+v;
+  var diff = tmpl.length-v.length;
+  if (diff>0)
+    v = tmpl.slice(0,diff) + v;
+  return v;
+};
+
 
 function getCharEsa(cc, upper){
   var h = cc.toString(16);

@@ -4,7 +4,7 @@
 'use strict';
 
 angular.module('Quando')
-  .controller('TempiCtrl', ['$scope','$http','$interval','$window','Logger', function ($scope,$http,$interval,$window,Logger) {
+  .controller('TempiCtrl', ['$scope','$http','$interval','$timeout','$window','Logger', function ($scope,$http,$interval,$timeout,$window,Logger) {
     var alarm = new Audio('assets/media/alarm.mp3');
     var alarmOwner;
     var _tick;
@@ -84,6 +84,11 @@ angular.module('Quando')
       return 0;
     }
 
+    function handleError(err) {
+      var msg = (err && !$.isEmptyObject(err)) ? JSON.stringify(err) : 'verificare le credenziali e riprovare.';
+      Logger.error('ERRORE richiesta file degli storici', msg);
+    }
+
     $scope.toggleOptions = function() {
       $scope.showopt = !$scope.showopt;
       $scope.optstyle = { height: $scope.showopt ? "135px" : "0" }
@@ -153,8 +158,7 @@ angular.module('Quando')
         })
         .error(function(err){
           $scope.milking = false;
-          var msg = (err && !$.isEmptyObject(err)) ? JSON.stringify(err) : 'verificare le credenziali e riprovare.';
-          Logger.error('ERRORE richiesta portale INAZ', msg);
+          handleError(err);
         });
     }
 
@@ -245,10 +249,11 @@ angular.module('Quando')
      * @param {boolean} small
      * @returns {string}
      */
-    $scope.getDate  = function(small) {
+    $scope.getDate  = function(small, sep) {
+      sep = sep || '/';
       var date = new Date();
       if (small)
-        return date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear();
+        return date.getDate()+sep+(date.getMonth()+1)+sep+date.getFullYear();
       return days[date.getDay()-1]+' '+date.getDate()+' '+months[date.getMonth()]+' '+date.getFullYear();
     };
 
@@ -638,19 +643,50 @@ angular.module('Quando')
     };
 
     $scope.downloadHistory = function() {
-      var data = {
-        rows:$scope.context.allitems,
-        meta:$scope.context.meta
+      var reqopt = {
+        user: $scope.context.user
       };
-      var content = JSON.stringify(data);
-      content = content.replace(/,"\$\$hashKey":"object:\d+"/g,'');
-      content = content.replace(/},{/g,'},\r\n{');
-      content = content.replace(/],"/g,'],\r\n"');
-      content = content.replace(/:\[{/g,':[\r\n{');
-      $window.open("data:text/csv;charset=utf-8," + encodeURIComponent(content));
+      $http.post('/api/inaz/download', reqopt)
+        .success(function(history) {
+          var content = JSON.stringify(history);
+          content = content.replace(/,"\$\$hashKey":"object:\d+"/g,'');
+          content = content.replace(/},{/g,'},\r\n{');
+          content = content.replace(/],"/g,'],\r\n"');
+          content = content.replace(/:\[{/g,':[\r\n{');
+          var file = new Blob([content], { type: 'text/json;charset=utf-8' });
+          var today = $scope.getDate('-');
+          saveAs(file,'history_'+today+'.json');
+        })
+        .error(function(err){
+          handleError(err);
+        });
     };
 
+    $scope.uploadHistoryContent = function(args) {
+      var reader = new FileReader();
+      reader.onload = function(onLoadEvent) {
+        var reqopt = {
+          user: $scope.context.user,
+          history:onLoadEvent.target.result
+        };
+        $http.post('/api/inaz/upload', reqopt)
+          .success(function() {
+            Logger.ok("Storici aggiornati correttamente!");
+          })
+          .error(function(err){
+            handleError(err);
+          });
+      };
+      reader.readAsText(args.files[0]);
+    };
 
+    $scope.uploadHistory = function() {
+      angular.element('#history-file').trigger('click');
+    };
+
+    $scope.test = function() {
+      $scope.uploadHistory();
+    };
 
     /**
      * Avvia la rappresentazione dell'orologio con un delay di 2 secondi

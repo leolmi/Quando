@@ -11,7 +11,8 @@ var controller = require('./inaz.controller');
 var router = express.Router();
 
 router.post('/', controller.data);
-router.post('/history', controller.upload);
+router.post('/download', controller.download);
+router.post('/upload', controller.upload);
 
 
 module.exports = router;
