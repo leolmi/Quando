@@ -684,10 +684,6 @@ angular.module('Quando')
       angular.element('#history-file').trigger('click');
     };
 
-    $scope.test = function() {
-      $scope.uploadHistory();
-    };
-
     /**
      * Avvia la rappresentazione dell'orologio con un delay di 2 secondi
      */
