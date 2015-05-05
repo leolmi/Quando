@@ -154,6 +154,9 @@ angular.module('Quando')
               $scope.recalc();
             }
           }
+          if (results && results.error) {
+            Logger.warning("Attenzione", results.error);
+          }
           $scope.milking = false;
         })
         .error(function(err){

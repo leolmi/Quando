@@ -176,11 +176,12 @@ exports.data = function(req, res) {
 
         var table = parseInaz(c3);
 
-        manageHistory(reqopt, table, function(err, result) {
-          if (!err && !reqopt.all)
-            result.data = result.data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
-          //var result = reqopt.all ? data : data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
-          return w.ok(res, result);
+        manageHistory(reqopt, table, function(err, results) {
+          if (err)
+            results.error = err;
+          if (!reqopt.all)
+            results.data = results.data.filter(function (r) { return r['C1'] == reqopt.today; }).reverse();
+          return w.ok(res, results);
         });
       });
     });
@@ -196,18 +197,17 @@ function paramsReplace(voice) {
 
 
 
-function manageHistory(opt, data, cb) {
-  //console.log('RISULTATI: ' + JSON.stringify(data));
+function manageHistory(reqopt, data, cb) {
   // STRUTTURA DEI RISULTATI:
   var results = {
     data: data,
     meta: []
   };
   // inserisce le peculiarità del giorno se esistono
-  if (opt.perm>0 || opt.work!=480)
-    results.meta.push({day:opt.today, perm:opt.perm, work:opt.work});
+  if (reqopt.perm>0 || reqopt.work!=480)
+    results.meta.push({day:reqopt.today, perm:reqopt.perm, work:reqopt.work});
 
-  mergeHistory(opt.user, results, opt.today, cb);
+  mergeHistory(reqopt.user, results, reqopt.today, cb);
 }
 
 function getUserFileName(user) {
@@ -233,7 +233,7 @@ function replaceHistory(user, history, cb) {
 
   //salva il file degli storici
   fs.writeFile(filename, JSON.stringify(history), function(err){
-    if (err) return cb(new Error("Errore in fase di salvataggio del file degli storici"));
+    if (err) return cb(new Error("Errore in fase di salvataggio del file degli storici"), history);
     cb(null, history);
   });
 }
@@ -244,7 +244,7 @@ function mergeHistory(user, history, today, cb) {
 
   //apre il file degli storici dell'utente
   fs.stat(filename, function(err, stats){
-    if (err) return cb(new Error("Errore in fase di recupero del file degli storici"));
+    if (err) return cb(new Error("Errore in fase di recupero del file degli storici"), history);
     //console.log("Errore in fase di recupero del file '"+filename+"': "+JSON.stringify(err));
     if (!err && stats.isFile()) {
       var content = fs.readFileSync(filename);
